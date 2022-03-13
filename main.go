@@ -37,7 +37,6 @@ func main() {
 	updates, _ := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-
 		// Обрабатывает обновления.
 		go handler(update)
 	}
@@ -45,7 +44,6 @@ func main() {
 
 // Обработчик обновлений.
 func handler(update tgbotapi.Update) {
-
 	// Проверяет что сообщение не пустое.
 	if update.Message == nil {
 		return
@@ -60,11 +58,33 @@ func handler(update tgbotapi.Update) {
 		return
 	}
 
+	// Обработка паники, что бы фатальный запрос не положил бота.
+	panicHandler := func() {
+		if err := recover(); err != nil {
+			fmt.Printf("fatal error:\n	user:	 %s\n	request: %s\n	error:	 %s\n", UserName, Request, fmt.Sprint(err))
+			resp := "Возникла критическая ошибка, которая вероятно скоро будет исправлена."
+			if Request == "Panic" {
+				resp = "Не паникуйте!"
+			}
+			msg := tgbotapi.NewMessage(ID, resp)
+			bot.Send(msg)
+		}
+	}
+	defer panicHandler()
+
 	// Выводит имя пользователя и сообщение в консоль.
 	fmt.Printf("%v: %v\n", UserName, Request)
 
+	// Тест отработки запроса, вызывающего панику.
+	if Request == "Panic" {
+		panic("Игрок паникует!")
+	}
+
 	// Если игрок пишет в первый раз после запуска бота.
 	if _, ok := worlds[ID]; !ok || Request == "/start" {
+		W := engine.World{}
+		W.Mu.Lock()
+		worlds[ID] = &W
 		if Request != "/start" {
 			resp := "К сожалению ваш прогрес был утерян в связи с перезапуском игрового сервера. Игра начнётся заново :("
 			msg := tgbotapi.NewMessage(ID, resp)
@@ -75,7 +95,7 @@ func handler(update tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(ID, resp)
 		bot.Send(msg)
 
-		worlds[ID] = world.Constructor()
+		W = *world.Constructor()
 	}
 
 	// Блокировка доступа к игровому миру для других горутин.
