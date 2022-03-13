@@ -53,7 +53,7 @@ func Constructor() *engine.World {
 	// Создание стола со встроенным ящиком.
 	Obj = (*items.TableWithDrawer).New(&items.TableWithDrawer{})
 
-	// Размещение стола в никуда.
+	// Размещение стола в кабинете.
 	base.Place(Obj, w.Locations("кабинет"))
 
 	// Сохранение стола в качестве позиции.
@@ -101,6 +101,15 @@ func Constructor() *engine.World {
 
 	// Размещение книжного шкафа в кабинете.
 	base.Place(Obj, w.Locations("кабинет"))
+
+	// Сохранение книжного шкафа в качестве позиции.
+	Pos = Obj.(base.Conteiner)
+
+	// Создание инструкции
+	Obj = (*items.Manual).New(&items.Manual{})
+
+	// Размемещениее инструкции в сохраненную позицию (книжный шкаф)
+	base.Place(Obj, Pos)
 
 	// Возвращает вновь созданный мир.
 	return w

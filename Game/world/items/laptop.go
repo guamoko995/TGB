@@ -131,9 +131,26 @@ func (b *Laptop) New() *Laptop {
 		if len(b.Content()) > 0 {
 			W := engine.RootConteiner(b)
 			b.wq.W = W
+			b.te.W = W
 			if b.freqSort {
 				resp = W.NewActiveHandler(b.wq)
 			} else {
+				ok := engine.FindObjByPartName(
+					"инструкция",
+					base.FindPosition{
+						Where:       W.Pl.(*Player),
+						Deep:        0,
+						IncludWhere: false,
+					},
+				)
+				if ok {
+					b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+						W := engine.RootConteiner(b)
+						resp := W.NewActiveHandler(b.wq)
+						resp.Msg = texts.GameText("использование инструкции")
+						return resp, args
+					})
+				}
 				resp = W.NewActiveHandler(b.te)
 			}
 
@@ -159,76 +176,7 @@ func (b *Laptop) New() *Laptop {
 	})
 
 	b.wq.NextHandler = b
-
-	b.te.InputFormat = func(s string) string { return s }
-	b.te.OutputFormat = func(s string) string { return s }
-	b.te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		return b.te.StResp(b.te.Text.Print()), args
-	})
-	b.te.Applications["заменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		W := engine.RootConteiner(b)
-		if args == "" {
-			resp := W.NewActiveHandler(&engine.Complementer{
-				W:               W,
-				LastCommand:     "заменить",
-				NextImplementer: b.te,
-			})
-			return resp, ""
-		}
-		ar := strings.SplitN(args, " ", 3)
-		if len(ar) < 2 {
-			return b.te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
-		}
-		endStr := ""
-		if len([]rune(ar[0])) != 1 || len([]rune(ar[1])) != 1 {
-			return b.te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
-		}
-		if len(ar) > 2 {
-			endStr = ar[3]
-		}
-		b.te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
-		return b.te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
-	})
-	b.te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		b.te.Text.Down()
-		return b.te.StResp("текст переведен в нижжний регистр"), args
-	})
-	b.te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		b.te.Text.Up()
-		return b.te.StResp("текст переведен в верхний регистр"), args
-	})
-	b.te.Applications["посчитать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		W := engine.RootConteiner(b)
-		if args == "" {
-			resp := W.NewActiveHandler(&engine.Complementer{
-				W:               W,
-				LastCommand:     "посчитать",
-				NextImplementer: b.te,
-			})
-			return resp, ""
-		}
-		ar := strings.SplitN(args, " ", 2)
-		endStr := ""
-		if len([]rune(ar[0])) != 1 {
-			return b.te.StResp("Команда \"посчитать\" принимает один символ"), ""
-		}
-		if len(ar) > 2 {
-			endStr = ar[2]
-		}
-		s := []rune(ar[0])[0]
-		n := b.te.Text.Count(s)
-		all := b.te.Text.CountAll()
-		p := float32(100*n) / float32(all)
-		return b.te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте", s, n, p)), endStr
-	})
-	b.te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		b.te.Text.Reset()
-		return b.te.StResp("Все измененияя отменены"), args
-	})
-	b.te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		W := engine.RootConteiner(b)
-		return W.NewActiveHandler(b), args
-	})
+	b.te.NextHandler = b
 	return b
 }
 
@@ -251,18 +199,20 @@ func (pc *Laptop) Take(obj base.Positioner) error {
 	return fmt.Errorf("Ноутбук не предусматривает возможность подключения " + obj.Name("Р"))
 }
 
-// Псевдопредмет: текстовый редактор
-type textEditor struct {
-	*engine.TreeHandlers
-	Text worldGame.QwestText
-}
-
 var varMurakami = worldGame.NewPsevdoText("Game/mediaFiles/Murakami.txt")
 
 func murakami() worldGame.PsevdoText {
 	copyText := worldGame.PsevdoText(make([]worldGame.RuneCount, len([]worldGame.RuneCount(varMurakami))))
 	copy([]worldGame.RuneCount(copyText), []worldGame.RuneCount(varMurakami))
-	return varMurakami
+	return copyText
+}
+
+// Псевдопредмет: текстовый редактор
+type textEditor struct {
+	*engine.TreeHandlers
+	Text        worldGame.QwestText
+	NextHandler engine.Handler
+	W           *engine.World
 }
 
 func (te *textEditor) New() *textEditor {
@@ -275,7 +225,7 @@ func (te *textEditor) New() *textEditor {
 	// отображаемый, второй - не отображаемый псевдотекст (карта,
 	// ключи которой составляют русский алфавит, а значения
 	// соответствуют количеству символов, соответствующих ключу в
-	// тексте.
+	// тексте).
 	te.Text = worldGame.MQT([]worldGame.QwestText{
 		worldGame.QwestText(worldGame.NewQText(texts.GameText("шифр"))),
 		worldGame.QwestText(murakami()),
@@ -285,9 +235,79 @@ func (te *textEditor) New() *textEditor {
 
 	te.Text.Crypt(crMap)
 	fmt.Printf("%c\n", crMap)
-	decrMap := worldGame.DecryptMap(te.Text)
+	/*decrMap := worldGame.DecryptMap(te.Text)
 	te.Text.Crypt(decrMap)
-	fmt.Printf("%c\n", decrMap)
+	fmt.Printf("%c\n", decrMap)*/
+
+	te.InputFormat = func(s string) string { return s }
+	te.OutputFormat = func(s string) string { return s }
+	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		return te.StResp(te.Text.Print()), args
+	})
+	te.Applications["заменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		//W := engine.RootConteiner(b)
+		if args == "" {
+			resp := te.W.NewActiveHandler(&engine.Complementer{
+				W:               te.W,
+				LastCommand:     "заменить",
+				NextImplementer: te,
+			})
+			return resp, ""
+		}
+		ar := strings.SplitN(args, " ", 3)
+		if len(ar) < 2 {
+			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
+		}
+		endStr := ""
+		if len([]rune(ar[0])) != 1 || len([]rune(ar[1])) != 1 {
+			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
+		}
+		if len(ar) > 2 {
+			endStr = ar[3]
+		}
+		te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
+		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
+	})
+	te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		te.Text.Down()
+		return te.StResp("текст переведен в нижжний регистр"), args
+	})
+	te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		te.Text.Up()
+		return te.StResp("текст переведен в верхний регистр"), args
+	})
+	te.Applications["посчитать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		//W := engine.RootConteiner(b)
+		if args == "" {
+			resp := te.W.NewActiveHandler(&engine.Complementer{
+				W:               te.W,
+				LastCommand:     "посчитать",
+				NextImplementer: te,
+			})
+			return resp, ""
+		}
+		ar := strings.SplitN(args, " ", 2)
+		endStr := ""
+		if len([]rune(ar[0])) != 1 {
+			return te.StResp("Команда \"посчитать\" принимает один символ"), ""
+		}
+		if len(ar) > 2 {
+			endStr = ar[2]
+		}
+		s := []rune(ar[0])[0]
+		n := te.Text.Count(s)
+		all := te.Text.CountAll()
+		p := float32(100*n) / float32(all)
+		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте", s, n, p)), endStr
+	})
+	te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		te.Text.Reset()
+		return te.StResp("Все измененияя отменены"), args
+	})
+	te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		//W := engine.RootConteiner(b)
+		return te.W.NewActiveHandler(te.NextHandler), args
+	})
 	return te
 }
 
