@@ -173,7 +173,6 @@ func (b *Laptop) New() *Laptop {
 			)
 			if ok {
 				b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-					modText()
 					//fmt.Printf("%c\n", decrMap)
 					//b.useMan=true
 					resp := W.NewActiveHandler(b.sm)
@@ -182,6 +181,7 @@ func (b *Laptop) New() *Laptop {
 					} else {
 						resp.Msg = texts.GameText("второе использование инструкции")
 					}
+					modText()
 					return resp, args
 				})
 			}
