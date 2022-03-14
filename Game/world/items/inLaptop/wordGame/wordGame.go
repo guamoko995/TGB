@@ -70,7 +70,7 @@ func (sm *SlotMakhine) kSum() int {
 // Обнвляет машину слотов.
 func (sm *SlotMakhine) Update() {
 
-	text := []rune(sm.Text.Print())
+	text := sm.Text.Print()
 	sm.Words = make([][]rune, 0)
 	word := []rune{}
 	for _, R := range text {
@@ -86,8 +86,8 @@ func (sm *SlotMakhine) Update() {
 
 	for _, R := range sm.Words[sm.Pos] {
 		p := &position{}
-		sm.Str = append(sm.Str, p)
 		p.update(R)
+		sm.Str = append(sm.Str, p)
 
 		if sm.Text.Count(R+'А'-'а') != 0 {
 			sm.SmartClick(R)
@@ -123,10 +123,7 @@ func (sm *SlotMakhine) next(R rune, mark bool) (nextR rune) {
 func (sm *SlotMakhine) click(R rune, mark bool) rune {
 	ok := func() bool {
 		// Если буква уже восстановлена
-		if sm.Text.Count(R+'А'-'а') != 0 {
-			return false
-		}
-		return true
+		return sm.Text.Count(R+'А'-'а') == 0
 	}
 	bufS := sm.kSum()
 	R = sm.next(R, mark)

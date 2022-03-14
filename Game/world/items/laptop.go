@@ -57,19 +57,6 @@ func (b *Laptop) New() *Laptop {
 
 	b.te.Text = text
 
-	// Функция производит замену букв в тексте в соответствии с
-	// распространенностью букв в русском языке
-	modText := func() {
-		// Отрабатывает единожды при первом использовании
-		// инструкции.
-		if !b.useMan {
-			decrMap := worldGame.DecryptMap(text)
-			text.Crypt(decrMap)
-			b.sm.SetText(text)
-			b.useMan = true
-		}
-	}
-
 	buildTools.SetName(b, "ноутбук")
 	b.Resize(3)
 	b.Recapacity(3)
@@ -173,15 +160,20 @@ func (b *Laptop) New() *Laptop {
 			)
 			if ok {
 				b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-					//fmt.Printf("%c\n", decrMap)
-					//b.useMan=true
-					resp := W.NewActiveHandler(b.sm)
+					msg := ""
 					if !b.useMan {
-						resp.Msg = texts.GameText("первое использование инструкции")
+						msg = texts.GameText("первое использование инструкции")
+
+						// Производит замену букв в тексте в соответствии с
+						// распространенностью букв в русском языке
+						b.sm.SetText(text)
+						b.useMan = true
 					} else {
-						resp.Msg = texts.GameText("второе использование инструкции")
+						msg = texts.GameText("второе использование инструкции")
 					}
-					modText()
+					b.sm.Update()
+					resp := W.NewActiveHandler(b.sm)
+					resp.Msg = msg
 					return resp, args
 				})
 			}

@@ -283,20 +283,12 @@ type RuneCount struct {
 func NewPsevdoText(fileName string) PsevdoText {
 	text := strFromFile(fileName)
 	RuneInText := make(map[rune]int)
-	for _, s := range []rune(string(text)) {
+	for _, s := range string(text) {
 		for _, sAbc := range ABC() {
 			if s == sAbc {
-				if _, ok := RuneInText[s]; ok {
-					RuneInText[s]++
-				} else {
-					RuneInText[s] = 1
-				}
+				RuneInText[s]++
 			} else if sAbc += ('А' - 'а'); s == sAbc {
-				if _, ok := RuneInText[s]; ok {
-					RuneInText[s]++
-				} else {
-					RuneInText[s] = 1
-				}
+				RuneInText[s]++
 			}
 		}
 	}
