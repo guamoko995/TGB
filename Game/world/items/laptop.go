@@ -44,9 +44,11 @@ func (b *Laptop) New() *Laptop {
 	// ключи которой составляют русский алфавит, а значения
 	// соответствуют количеству символов, соответствующих ключу в
 	// тексте).
+	copyText := worldGame.PsevdoText(make([]worldGame.RuneCount, len([]worldGame.RuneCount(Murakami))))
+	copy([]worldGame.RuneCount(copyText), []worldGame.RuneCount(Murakami))
 	text := worldGame.MQT([]worldGame.QwestText{
 		worldGame.QwestText(worldGame.NewQText(texts.GameText("шифр"))),
-		worldGame.QwestText(Murakami),
+		worldGame.QwestText(copyText),
 	})
 
 	// Текст зашифрован случайной заменой.
