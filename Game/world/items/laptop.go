@@ -4,11 +4,13 @@ import (
 	"TelegramGameBot/Game/base"
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world/buildTools"
-	worldGame "TelegramGameBot/Game/world/items/wordGame"
+	inLaptop "TelegramGameBot/Game/world/items/inLaptop"
+	worldGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
 	"TelegramGameBot/Game/world/texts"
 	"fmt"
-	"strings"
 )
+
+var Murakami = worldGame.NewPsevdoText("Game/mediaFiles/Murakami.txt")
 
 // Предмет: ноутбук.
 type Laptop struct {
@@ -16,9 +18,9 @@ type Laptop struct {
 	*base.StSizer
 	*base.StLimitedConteiner
 	*engine.TreeHandlers
-	te       *textEditor
-	wq       *SlotMakhine
-	freqSort bool
+	te     *inLaptop.TextEditor
+	sm     *inLaptop.SlotMakhine
+	useMan bool
 }
 
 func (b *Laptop) Status() string {
@@ -31,16 +33,40 @@ func (b *Laptop) New() *Laptop {
 		StSizer:            &base.StSizer{},
 		StLimitedConteiner: (*base.StLimitedConteiner).New(&base.StLimitedConteiner{}),
 		TreeHandlers:       (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
-		te:                 (*textEditor).New(&textEditor{}),
-		wq: &SlotMakhine{
+		te:                 (*inLaptop.TextEditor).New(&inLaptop.TextEditor{}),
+		sm: &inLaptop.SlotMakhine{
 			SlotMakhine: &worldGame.SlotMakhine{},
 		},
 	}
 
-	b.wq.SetText(worldGame.MQT([]worldGame.QwestText{
+	// Текст состоит из двух текстов. Первый - не большой реально
+	// отображаемый, второй - не отображаемый псевдотекст (карта,
+	// ключи которой составляют русский алфавит, а значения
+	// соответствуют количеству символов, соответствующих ключу в
+	// тексте).
+	text := worldGame.MQT([]worldGame.QwestText{
 		worldGame.QwestText(worldGame.NewQText(texts.GameText("шифр"))),
-		worldGame.QwestText(murakami()),
-	}))
+		worldGame.QwestText(Murakami),
+	})
+
+	// Текст зашифрован случайной заменой.
+	crMap := worldGame.GenCryptMap()
+	text.Crypt(crMap)
+
+	b.te.Text = text
+
+	// Функция производит замену букв в тексте в соответствии с
+	// распространенностью букв в русском языке
+	modText := func() {
+		// Отрабатывает единожды при первом использовании
+		// инструкции.
+		if !b.useMan {
+			decrMap := worldGame.DecryptMap(text)
+			text.Crypt(decrMap)
+			b.sm.SetText(text)
+			b.useMan = true
+		}
+	}
 
 	buildTools.SetName(b, "ноутбук")
 	b.Resize(3)
@@ -130,29 +156,35 @@ func (b *Laptop) New() *Laptop {
 		}
 		if len(b.Content()) > 0 {
 			W := engine.RootConteiner(b)
-			b.wq.W = W
+			b.sm.W = W
 			b.te.W = W
-			if b.freqSort {
-				resp = W.NewActiveHandler(b.wq)
-			} else {
-				ok := engine.FindObjByPartName(
-					"инструкция",
-					base.FindPosition{
-						Where:       W.Pl.(*Player),
-						Deep:        0,
-						IncludWhere: false,
-					},
-				)
-				if ok {
-					b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-						W := engine.RootConteiner(b)
-						resp := W.NewActiveHandler(b.wq)
-						resp.Msg = texts.GameText("использование инструкции")
-						return resp, args
-					})
-				}
-				resp = W.NewActiveHandler(b.te)
+			/*if b.useMan {
+				resp = W.NewActiveHandler(b.sm)
+			} else {*/
+			ok := engine.FindObjByPartName(
+				"инструкция",
+				base.FindPosition{
+					Where:       W.Pl.(*Player),
+					Deep:        0,
+					IncludWhere: false,
+				},
+			)
+			if ok {
+				b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+					modText()
+					//fmt.Printf("%c\n", decrMap)
+					//b.useMan=true
+					resp := W.NewActiveHandler(b.sm)
+					if !b.useMan {
+						resp.Msg = texts.GameText("первое использование инструкции")
+					} else {
+						resp.Msg = texts.GameText("второе использование инструкции")
+					}
+					return resp, args
+				})
 			}
+			resp = W.NewActiveHandler(b.te)
+			//}
 
 			resp.Msg = "На карте памяти Вы нашли текстовый файл с именем \"Ш" +
 				"ифр\" и открыли его в текстовом редакторе. Вам доступны" +
@@ -175,7 +207,7 @@ func (b *Laptop) New() *Laptop {
 		return W.NewActiveHandler(W.Pl), args
 	})
 
-	b.wq.NextHandler = b
+	b.sm.NextHandler = b
 	b.te.NextHandler = b
 	return b
 }
@@ -199,193 +231,8 @@ func (pc *Laptop) Take(obj base.Positioner) error {
 	return fmt.Errorf("Ноутбук не предусматривает возможность подключения " + obj.Name("Р"))
 }
 
-var varMurakami = worldGame.NewPsevdoText("Game/mediaFiles/Murakami.txt")
-
-func murakami() worldGame.PsevdoText {
+/*func Murakami() worldGame.PsevdoText {
 	copyText := worldGame.PsevdoText(make([]worldGame.RuneCount, len([]worldGame.RuneCount(varMurakami))))
 	copy([]worldGame.RuneCount(copyText), []worldGame.RuneCount(varMurakami))
 	return copyText
-}
-
-// Псевдопредмет: текстовый редактор
-type textEditor struct {
-	*engine.TreeHandlers
-	Text        worldGame.QwestText
-	NextHandler engine.Handler
-	W           *engine.World
-}
-
-func (te *textEditor) New() *textEditor {
-	te = &textEditor{
-		TreeHandlers: (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
-	}
-	buildTools.SetName(te, "текстовый редактор")
-
-	// Текст состоит из двух текстов. Первый - не большой реально
-	// отображаемый, второй - не отображаемый псевдотекст (карта,
-	// ключи которой составляют русский алфавит, а значения
-	// соответствуют количеству символов, соответствующих ключу в
-	// тексте).
-	te.Text = worldGame.MQT([]worldGame.QwestText{
-		worldGame.QwestText(worldGame.NewQText(texts.GameText("шифр"))),
-		worldGame.QwestText(murakami()),
-	})
-
-	crMap := worldGame.GenCryptMap()
-
-	te.Text.Crypt(crMap)
-	fmt.Printf("%c\n", crMap)
-	/*decrMap := worldGame.DecryptMap(te.Text)
-	te.Text.Crypt(decrMap)
-	fmt.Printf("%c\n", decrMap)*/
-
-	te.InputFormat = func(s string) string { return s }
-	te.OutputFormat = func(s string) string { return s }
-	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		return te.StResp(te.Text.Print()), args
-	})
-	te.Applications["заменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
-		if args == "" {
-			resp := te.W.NewActiveHandler(&engine.Complementer{
-				W:               te.W,
-				LastCommand:     "заменить",
-				NextImplementer: te,
-			})
-			return resp, ""
-		}
-		ar := strings.SplitN(args, " ", 3)
-		if len(ar) < 2 {
-			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
-		}
-		endStr := ""
-		if len([]rune(ar[0])) != 1 || len([]rune(ar[1])) != 1 {
-			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
-		}
-		if len(ar) > 2 {
-			endStr = ar[3]
-		}
-		te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
-		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
-	})
-	te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Down()
-		return te.StResp("текст переведен в нижжний регистр"), args
-	})
-	te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Up()
-		return te.StResp("текст переведен в верхний регистр"), args
-	})
-	te.Applications["посчитать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
-		if args == "" {
-			resp := te.W.NewActiveHandler(&engine.Complementer{
-				W:               te.W,
-				LastCommand:     "посчитать",
-				NextImplementer: te,
-			})
-			return resp, ""
-		}
-		ar := strings.SplitN(args, " ", 2)
-		endStr := ""
-		if len([]rune(ar[0])) != 1 {
-			return te.StResp("Команда \"посчитать\" принимает один символ"), ""
-		}
-		if len(ar) > 2 {
-			endStr = ar[2]
-		}
-		s := []rune(ar[0])[0]
-		n := te.Text.Count(s)
-		all := te.Text.CountAll()
-		p := float32(100*n) / float32(all)
-		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте", s, n, p)), endStr
-	})
-	te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Reset()
-		return te.StResp("Все измененияя отменены"), args
-	})
-	te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
-		return te.W.NewActiveHandler(te.NextHandler), args
-	})
-	return te
-}
-
-func (te *textEditor) StResp(Msg string) engine.Response {
-	return engine.Response{
-		Msg:     Msg,
-		Status:  te.Status(),
-		Options: te.Options(),
-	}
-}
-
-func (te *textEditor) Status() string {
-	return "[использование текстового редактора]"
-}
-
-// Машина слотов.
-type SlotMakhine struct {
-	*worldGame.SlotMakhine
-	NextHandler engine.Handler
-	W           *engine.World
-}
-
-// Возвращает варианты взаимодействия с машиной слотов.
-func (sm *SlotMakhine) Options() [][]string {
-	options := [][]string{
-		{},
-		{"<-", "зафиксировать слово", "->"},
-		{"заново", "x"},
-	}
-	for _, mr := range sm.Str {
-		R := mr.Name()
-		sR := string([]rune{R})
-		options[0] = append(options[0], sR)
-	}
-	return options
-}
-
-func (sm *SlotMakhine) Status() string {
-	return "[дешифровка]"
-}
-
-func (sm *SlotMakhine) Handle(str string) (engine.Response, string) {
-	l := len(sm.Words)
-	switch str {
-	case "<-":
-		sm.Pos--
-		if sm.Pos < 0 {
-			sm.Pos += l
-		}
-		sm.Update()
-	case "->":
-		sm.Pos++
-		if sm.Pos == l {
-			sm.Pos = 0
-		}
-		sm.Update()
-	case "заново":
-		sm.Text.Reset()
-		sm.Text.Down()
-		sm.Update()
-	case "зафиксировать слово":
-		for key, R := range sm.ReplaceMap() {
-			sm.Text.Replace(key, R)
-		}
-		sm.Update()
-	case "x":
-		return sm.W.NewActiveHandler(sm.NextHandler), ""
-	default:
-		R := []rune(str)[0]
-		sm.SmartClick(R)
-	}
-	msg := make([]rune, 0)
-	for _, pos := range sm.Str {
-		msg = append(msg, pos.Name())
-	}
-	return engine.Response{
-		Msg:     string(msg),
-		Status:  "[клавиатура]",
-		Options: sm.Options(),
-	}, ""
-}
+}*/
