@@ -41,6 +41,11 @@ func main() {
 	}
 }
 
+//"AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ"
+//1280
+//576
+//124324
+
 // Обработчик обновлений.
 func handler(update tgbotapi.Update) {
 	// Проверяет что сообщение не пустое.
@@ -92,7 +97,12 @@ func handler(update tgbotapi.Update) {
 		// Информирует пользователя о скором начале игры.
 		resp := "Игра скоро начнётся..."
 		msg := tgbotapi.NewMessage(ID, resp)
+		//msg.BaseChat.ReplyMarkup=tgbotapi.PhotoConfig.BaseFile := tgbotapi.NewMessage(ID, resp)
 		bot.Send(msg)
+
+		msig := tgbotapi.NewPhotoShare(ID, "AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ")
+		bot.Send(msig)
+		//bot.SendPhoto(ID, "AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ")
 
 		// Создает новый мир.
 		W = world.Constructor()
