@@ -2,6 +2,7 @@ package main
 
 import (
 	"TelegramGameBot/Game/engine"
+	mediafiles "TelegramGameBot/Game/mediaFiles"
 	"TelegramGameBot/Game/world"
 	"fmt"
 	"os"
@@ -40,11 +41,6 @@ func main() {
 		go handler(update)
 	}
 }
-
-//"AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ"
-//1280
-//576
-//124324
 
 // Обработчик обновлений.
 func handler(update tgbotapi.Update) {
@@ -97,12 +93,10 @@ func handler(update tgbotapi.Update) {
 		// Информирует пользователя о скором начале игры.
 		resp := "Игра скоро начнётся..."
 		msg := tgbotapi.NewMessage(ID, resp)
-		//msg.BaseChat.ReplyMarkup=tgbotapi.PhotoConfig.BaseFile := tgbotapi.NewMessage(ID, resp)
 		bot.Send(msg)
 
-		msig := tgbotapi.NewPhotoShare(ID, "AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ")
+		msig := tgbotapi.NewPhotoShare(ID, mediafiles.Image["Juno"])
 		bot.Send(msig)
-		//bot.SendPhoto(ID, "AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ")
 
 		// Создает новый мир.
 		W = world.Constructor()
@@ -142,6 +136,8 @@ func inGameHandler(ID int64, Request string) {
 		// Отправка ответа пользователю.
 		msg := tgbotapi.NewMessage(ID, resp.Msg)
 		bot.Send(msg) // Отправка основного сообщения.
+		msig := tgbotapi.NewPhotoShare(ID, resp.Img)
+		bot.Send(msig) // Отправка изображения.
 		msg = tgbotapi.NewMessage(ID, resp.Status)
 		msg.BaseChat.ReplyMarkup = Keyboard(resp.Options)
 		bot.Send(msg) // Отправка статуса с клавиатурой.

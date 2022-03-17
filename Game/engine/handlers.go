@@ -17,6 +17,7 @@ type Response struct {
 	Msg     string     // Основное сообщение - реакциия на запрос.
 	Status  string     // Доп сообщение для отображения режима игры.
 	Options [][]string // Кнопки клавиатуры в tlg.
+	Img     string     // Изображение
 }
 
 type PrimalHandlers func(string) (Response, string)
