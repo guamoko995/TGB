@@ -133,14 +133,9 @@ func inGameHandler(ID int64, Request string) {
 	for {
 		// Получение ответа от главного исполнителя игрового мира.
 		resp, remainder := worlds[ID].ActiveHandler.Handle(Request)
+
 		// Отправка ответа пользователю.
-		msg := tgbotapi.NewMessage(ID, resp.Msg)
-		bot.Send(msg) // Отправка основного сообщения.
-		msig := tgbotapi.NewPhotoShare(ID, resp.Img)
-		bot.Send(msig) // Отправка изображения.
-		msg = tgbotapi.NewMessage(ID, resp.Status)
-		msg.BaseChat.ReplyMarkup = Keyboard(resp.Options)
-		bot.Send(msg) // Отправка статуса с клавиатурой.
+		Send(ID, resp)
 
 		if remainder == "" {
 			// Если обработан весь запрос, цикл завершается.
@@ -150,6 +145,7 @@ func inGameHandler(ID int64, Request string) {
 			Request = remainder
 		}
 	}
+
 	// Возвращение доступа к игровому миру для других горутин.
 	// Доступ возвращается после отправки ответа для предотвращения
 	// изменения порядка ответов.
@@ -210,4 +206,15 @@ func Keyboard(options [][]string) interface{} {
 		ResizeKeyboard:  true,
 		OneTimeKeyboard: false,
 	}
+}
+
+// Отправка ответа пользователю по ID.
+func Send(ID int64, resp engine.Response) {
+	photo := tgbotapi.NewPhotoShare(ID, resp.Img)
+	bot.Send(photo) // Отправка изображения.
+	msg := tgbotapi.NewMessage(ID, resp.Msg)
+	bot.Send(msg) // Отправка основного сообщения.
+	msg = tgbotapi.NewMessage(ID, resp.Status)
+	msg.BaseChat.ReplyMarkup = Keyboard(resp.Options)
+	bot.Send(msg) // Отправка статуса с клавиатурой.
 }
