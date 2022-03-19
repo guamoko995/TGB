@@ -12,9 +12,6 @@ import (
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
 )
 
-// Каждому пользователю соответствует один игровой мир.
-var worlds = make(map[int64]*engine.World)
-
 // Объект API Telegram.
 var bot *tgbotapi.BotAPI
 
@@ -70,18 +67,18 @@ func handler(update tgbotapi.Update) {
 	}
 
 	// Прерывает обработку, если мир в статусе создания.
-	_, ok := worlds[ID]
-	if ok && worlds[ID] == nil {
+	_, ok := engine.Worlds[ID]
+	if ok && engine.Worlds[ID] == nil {
 		return
 	}
 
 	var W *engine.World
 
-	// Запрос на создание мира (команда /start или вынужденный запрос - отсутствие в worlds ключа ID)
+	// Запрос на создание мира (команда /start или вынужденный запрос - отсутствие в engine.Worlds ключа ID)
 	if !ok || Request == "/start" {
 
 		// Создает в карте миров ключ с nil значением для того чтобы новые запросы игнорировались до завершения создания (стр.71).
-		worlds[ID] = nil
+		engine.Worlds[ID] = nil
 
 		// Информирует пользователя о потере прогресса в случае вынужденного запроса.
 		if Request != "/start" {
@@ -100,7 +97,7 @@ func handler(update tgbotapi.Update) {
 
 		// Создает новый мир.
 		W = world.Constructor()
-		worlds[ID] = W
+		engine.Worlds[ID] = W
 	}
 
 	// Вызов внутриигрового обработчика команд.
@@ -128,28 +125,18 @@ func panicHandler(ID int64, UserName string, Request string) {
 // Внутриигровой обработчик пользовательских запросов.
 func inGameHandler(ID int64, Request string) {
 	// Блокировка доступа к игровому миру для других горутин.
-	worlds[ID].Mu.Lock()
+	engine.Worlds[ID].Mu.Lock()
 
-	for {
-		// Получение ответа от главного исполнителя игрового мира.
-		resp, remainder := worlds[ID].ActiveHandler.Handle(Request)
-
-		// Отправка ответа пользователю.
+	// Получение ответов от главного мирового обработчика.
+	for _, resp := range engine.Worlds[ID].Handle(Request) {
+		// Отправка ответов пользователю.
 		Send(ID, resp)
-
-		if remainder == "" {
-			// Если обработан весь запрос, цикл завершается.
-			break
-		} else {
-			// Если нет, обрабатывается оставшаяся часть запроса.
-			Request = remainder
-		}
 	}
 
 	// Возвращение доступа к игровому миру для других горутин.
 	// Доступ возвращается после отправки ответа для предотвращения
 	// изменения порядка ответов.
-	worlds[ID].Mu.Unlock()
+	engine.Worlds[ID].Mu.Unlock()
 }
 
 // Возвращает клавиатуру из доступных опций.

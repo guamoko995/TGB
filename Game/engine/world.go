@@ -7,21 +7,67 @@ import (
 	"sync"
 )
 
-// Игровой мир.
-var Worlds = map[int64]*World{}
+// Каждому пользователю соответствует один игровой мир.
+var Worlds = make(map[int64]*World)
 
 type Player interface {
-	Handler
-	base.Positioner
+	Handler         // Является исполнителем
+	base.Positioner // Игрок является перемещаемым объектом
+}
+
+type Event interface {
+	Check() bool
+	Handle() Response
 }
 
 type World struct {
-	Mu            sync.Mutex
-	ActiveHandler Handler
-	Pl            Player
-	Nr            *Narrator
-	*base.StNamer
-	*base.StConteiner
+	Mu sync.Mutex
+
+	*base.StConteiner // Мир содержит локации
+	*base.StNamer     // !!!need fix контейнер должен иметь имя чтобы реализовать интерфейс base.Conteiner
+
+	Ev []Event // Цели и задачи игрока
+
+	ActiveHandler Handler   // Указатель на текущего исполнителя
+	Pl            Player    // Указатель на игрока
+	Nr            *Narrator // Указатель на повествователя
+}
+
+// Главный мировой обработчик запросов.
+func (w *World) Handle(req string) []Response {
+	resps := make([]Response, 0)
+	for {
+		// Получение ответа от главного исполнителя игрового мира.
+		resp, remainder := w.ActiveHandler.Handle(req)
+
+		resps = append(resps, resp)
+
+		if remainder == "" {
+			// Если обработан весь запрос, цикл завершается.
+			break
+		} else {
+			// Если нет, обрабатывается оставшаяся часть запроса.
+			req = remainder
+		}
+	}
+
+	// Отслеживание прогресса игры.
+	resps = append(resps, w.checkProgres()...)
+	return resps
+}
+
+// Отслеживает прогресс игры.
+func (w *World) checkProgres() []Response {
+	resps := make([]Response, 0)
+
+	for _, event := range w.Ev {
+		// Если условия наступления события выполнены
+		if event.Check() {
+			// Обработка события
+			resps = append(resps, event.Handle())
+		}
+	}
+	return resps
 }
 
 // Конструктор
@@ -29,8 +75,8 @@ func (w *World) New() *World {
 	w = &World{
 		StNamer:     (*base.StNamer).New(&base.StNamer{}),
 		StConteiner: (*base.StConteiner).New(&base.StConteiner{}),
-		//Pl:          (*Player).New(&Player{}),
-		Nr: &Narrator{},
+		Nr:          &Narrator{},
+		Ev:          []Event{},
 	}
 	w.Nr.W = w
 	return w
@@ -110,18 +156,19 @@ func (w *World) String() string {
 
 // Игровая локация.
 type Location struct {
-	*base.StNamer
-	*base.StPositioner
-	*base.StConteiner              // Содержит любые объекты.
-	Bridge            *EnConteiner // Проходы на другие локации.
+	*base.StNamer                   // Локация имеет имя
+	*base.StPositioner              // Локация содержится в мире
+	*base.StConteiner               // Содержит любые объекты.
+	Bridge             *EnConteiner // Проходы на другие локации.
 }
 
+// Минимальная реализация base.Conteiner
 type EnConteiner struct {
 	*base.StNamer
 	*base.StConteiner
 }
 
-// Сущность-контейнер.
+// Конструктор сущности-контейнера.
 func (*EnConteiner) New() *EnConteiner {
 	c := EnConteiner{
 		StNamer:     (*base.StNamer).New(&base.StNamer{}),
@@ -138,7 +185,6 @@ func (*Location) New() *Location {
 		StConteiner:  (*base.StConteiner).New(&base.StConteiner{}),
 		Bridge:       (*EnConteiner).New(&EnConteiner{}),
 	}
-	//loc.Bridge.Reposition(loc)
 	return loc
 }
 
@@ -162,7 +208,6 @@ func (loc *Location) String() string {
 	s += ". отсюда "
 	ms = make([]string, 0)
 	for _, bridg := range loc.Bridge.Content() {
-		//fmt.Println(bridg.Name())
 		ms = append(ms, bridg.Name("куда"))
 	}
 	if len(ms) == 0 {
