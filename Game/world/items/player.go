@@ -3,8 +3,6 @@ package items
 import (
 	"TelegramGameBot/Game/base"
 	"TelegramGameBot/Game/engine"
-
-	//"TelegramGameBot/Game/world/buildTools"
 	"fmt"
 	"strings"
 )
@@ -267,10 +265,12 @@ func (pl *Player) CommandInit() {
 			W := engine.RootConteiner(pl)
 			return W.String(), args
 		},*/
+
 		// Перечисляет содержимое инвентаря.
 		"инвентарь": engine.PrimalHandlers(func(args string) (engine.Response, string) {
 			return pl.StResp(pl.Inv.String()), args
 		}),
+
 		// Перемещает указанный предмет в инвентарь.
 		"взять": engine.PrimalHandlers(func(args string) (engine.Response, string) {
 			W := engine.RootConteiner(pl)
@@ -434,7 +434,6 @@ func (pl *Player) Reposition(c base.Conteiner) {
 func (pl *Player) ConsumeBridgeFoundByName(name string) (*engine.Location, string, error) {
 	W := engine.RootConteiner(pl)
 	if name == "" {
-		//Complement(W.LastMsg, W.Implementer, []string{}, base.FindPosition{pl.Position().(*Location).Bridge, 0, false})
 		return nil, "", engine.ErrEmptyStr
 	}
 	obj, endStr := engine.ConsumePositionerFoundByName(
