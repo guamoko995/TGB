@@ -27,6 +27,10 @@ func (b *Laptop) Status() string {
 	return "[использование ноутбука]"
 }
 
+func (b *Laptop) Text() string {
+	return b.te.Text.Print()
+}
+
 func (b *Laptop) New() *Laptop {
 	b = &Laptop{
 		StPositioner:       &base.StPositioner{},

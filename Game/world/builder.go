@@ -43,7 +43,7 @@ func Constructor() *engine.World {
 	Obj = w.AddLocation()
 	buildTools.SetName(Obj, "ничто")
 
-	// Создание прохода из никуда в кабинет.
+	// Создание прохода из ниоткуда в кабинет.
 	Obj.(*engine.Location).Bridge.Add(w.Locations("кабинет"))
 
 	// Создание прохода из кабинета в никуда.
@@ -61,6 +61,31 @@ func Constructor() *engine.World {
 
 	// Создание ноутбука.
 	Obj = (*items.Laptop).New(&items.Laptop{})
+
+	lp := Obj.(*items.Laptop)
+	win := stEvent{}
+	win.check = func() bool {
+		t1 := engine.InputFormat(lp.Text())
+		t2 := engine.InputFormat(texts.GameText("шифр"))
+		return t1 == t2
+	}
+	win.handle = func() engine.Response {
+		// Предотвращает повторную обработку события
+		win.check = func() bool {
+			return false
+		}
+
+		// Создание повествователя.
+		w.Nr.Texts = strings.Split(texts.GameText("победа"), "\n")
+		w.Nr.NumberText = 0
+
+		// Назначение повествователя исполнителем команд.
+		w.NewActiveHandler(w.Nr)
+		resp, _ := w.Nr.Handle("->")
+		return resp
+	}
+
+	w.Ev = append(w.Ev, win)
 
 	// Размещение ноутбука в сохраненную позицию (на стол).
 	base.Place(Obj, Pos)
@@ -113,4 +138,16 @@ func Constructor() *engine.World {
 
 	// Возвращает вновь созданный мир.
 	return w
+}
+
+type stEvent struct {
+	check  func() bool
+	handle func() engine.Response
+}
+
+func (ev stEvent) Check() bool {
+	return ev.check()
+}
+func (ev stEvent) Handle() engine.Response {
+	return ev.handle()
 }
