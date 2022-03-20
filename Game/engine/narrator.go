@@ -2,9 +2,9 @@ package engine
 
 import (
 	"fmt"
-	//"TelegramGameBot/Game/world/texts"
 )
 
+// Повествователь - игровой исполнитель, осуществляющий повествование
 type Narrator struct {
 	Texts           []string
 	NumberText      int
@@ -12,14 +12,18 @@ type Narrator struct {
 	W               *World
 }
 
+// Статус строка повествователя - номер текущего сообщения и общее количество сообщений.
 func (n *Narrator) Status() string {
 	return fmt.Sprintf("[ %v/%v ]", n.NumberText, len(n.Texts))
 }
 
+// Повествователь принимает одну команду - показать следующее сообщение "->"
 func (*Narrator) Options() [][]string {
 	return [][]string{{"->"}}
 }
 
+// Повествователь показывает следующее сообщение и передает статус исполниетеля
+// следующему исполнителю сразу после показа последнего сообщения.
 func (n *Narrator) Handle(str string) (Response, string) {
 	l := len(n.Texts) - 1
 	if n.NumberText < l {
@@ -39,12 +43,3 @@ func (n *Narrator) Handle(str string) (Response, string) {
 		}, ""
 	}
 }
-
-/*/ Функция которая делает исполнителем пользовательских комманд некий
-// помощник - повествователь.
-func (n *Narrator) New() *Narrator {
-	n = &Narrator{
-		Texts: strings.Split(texts.GameText("введение"), "\n"),
-	}
-	return n
-}*/
