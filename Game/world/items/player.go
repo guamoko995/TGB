@@ -15,15 +15,16 @@ type Box interface {
 type Inventory struct {
 	*base.StNamer
 	*base.StPositioner
-	*base.StConteiner
+	*base.StLimitedConteiner
 }
 
 func (b *Inventory) New() *Inventory {
 	b = &Inventory{
-		StNamer:      (*base.StNamer).New(&base.StNamer{}),
-		StPositioner: &base.StPositioner{},
-		StConteiner:  (*base.StConteiner).New(&base.StConteiner{}),
+		StNamer:            (*base.StNamer).New(&base.StNamer{}),
+		StPositioner:       &base.StPositioner{},
+		StLimitedConteiner: (*base.StLimitedConteiner).New(&base.StLimitedConteiner{}),
 	}
+	b.Recapacity(100)
 	return b
 }
 
