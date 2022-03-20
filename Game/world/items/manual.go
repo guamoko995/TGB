@@ -24,5 +24,5 @@ func (b *Manual) New() *Manual {
 }
 
 func (b *Manual) String() string {
-	return "инструкция"
+	return "инструкция по дешифровке"
 }
