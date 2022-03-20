@@ -85,7 +85,7 @@ func Constructor() *engine.World {
 		return resp
 	}
 
-	w.Ev = append(w.Ev, win)
+	w.Ev = append(w.Ev, &win)
 
 	// Размещение ноутбука в сохраненную позицию (на стол).
 	base.Place(Obj, Pos)
@@ -145,9 +145,9 @@ type stEvent struct {
 	handle func() engine.Response
 }
 
-func (ev stEvent) Check() bool {
+func (ev *stEvent) Check() bool {
 	return ev.check()
 }
-func (ev stEvent) Handle() engine.Response {
+func (ev *stEvent) Handle() engine.Response {
 	return ev.handle()
 }
