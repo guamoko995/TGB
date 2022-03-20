@@ -207,7 +207,7 @@ func RootConteiner(d base.Positioner) *World {
 	panic("Тип RootConteiner не World")
 }
 
-// Перечисляет содержимое контейнера.
+// Строковое представление контейнера.
 func StrConteiner(c base.Conteiner) string {
 	ms := make([]string, 0)
 	for _, obj := range c.Content() {

@@ -111,13 +111,6 @@ func (c *Complementer) Options() [][]string {
 // Обрабатывает пользовательский вариант.
 func (c *Complementer) Handle(args string) (Response, string) {
 	c.W.ActiveHandler = c.NextImplementer
-	/*if args=="х"{
-		return Response{
-			Msg: "",
-			Status: c.W.ActiveHandler.Status(),
-			Options: c.W.ActiveHandler.Options(),
-		},""
-	}*/
 	return c.W.ActiveHandler.Handle(c.LastCommand + " " + args)
 }
 
