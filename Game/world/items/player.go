@@ -27,6 +27,12 @@ func (b *Inventory) New() *Inventory {
 	return b
 }
 
+// По умолчанию строковым представлением коробки является перечисление
+// содержимого.
+func (b *Inventory) String() string {
+	return engine.StrConteiner(b)
+}
+
 type Player struct {
 	*base.StPositioner
 	*engine.TreeHandlers
