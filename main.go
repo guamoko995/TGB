@@ -2,7 +2,6 @@ package main
 
 import (
 	"TelegramGameBot/Game/engine"
-	mediafiles "TelegramGameBot/Game/mediaFiles"
 	"TelegramGameBot/Game/world"
 	"fmt"
 	"os"
@@ -91,9 +90,6 @@ func handler(update tgbotapi.Update) {
 		resp := "Игра скоро начнётся..."
 		msg := tgbotapi.NewMessage(ID, resp)
 		bot.Send(msg)
-
-		msig := tgbotapi.NewPhotoShare(ID, mediafiles.Image["Juno"])
-		bot.Send(msig)
 
 		// Создает новый мир.
 		W = world.Constructor()
