@@ -87,7 +87,12 @@ func (h *TreeHandlers) Handle(request string) (Response, string) {
 			}
 			s += " "
 		}
-		panic("Не найдена существующая возможность.")
+
+		return Response{
+			Msg:     "Вероятно Вы что-то не договариваете.",
+			Status:  h.Status(),
+			Options: h.Options(),
+		}, ""
 	}
 	resp, remainder := app.Handle(remainder)
 	resp.Msg = h.OutputFormat(resp.Msg)
