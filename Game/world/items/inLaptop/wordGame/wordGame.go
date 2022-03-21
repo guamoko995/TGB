@@ -26,7 +26,6 @@ func (pos *position) update(R rune) {
 			pos.p = pos.defP
 			for i := lb; i < ub; i++ {
 				pos.column = append(pos.column, sortedRusRuneCount[i].R)
-				//fmt.Printf("%c\n",sortedRusRuneCount[i].R)
 			}
 			return
 		}
@@ -54,8 +53,6 @@ type SlotMakhine struct {
 	Words [][]rune
 	Text  QwestText
 	Pos   int
-	//NextHandler Game.Handler
-	//W           *Game.engine.World
 }
 
 // Контрольная сумма. Уникальна для каждого положения спинов.
@@ -88,7 +85,9 @@ func (sm *SlotMakhine) Update() {
 		p := &position{}
 		p.update(R)
 		sm.Str = append(sm.Str, p)
+	}
 
+	for _, R := range sm.Words[sm.Pos] {
 		if sm.Text.Count(R+'А'-'а') != 0 {
 			sm.SmartClick(R)
 		}
