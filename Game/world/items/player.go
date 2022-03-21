@@ -469,5 +469,5 @@ func (pl *Player) ConsumeBridgeFoundByName(name string) (*engine.Location, strin
 			return nil, "", fmt.Errorf("нельзя идти \"" + s + "\" или в место начинающееся со слов" + postfix + " \"" + s + "\"")
 		}
 	}
-	return nil, "", fmt.Errorf("вероятно вы что-то недоговариваете")
+	return nil, "", fmt.Errorf("вероятно Вы что-то недоговариваете")
 }

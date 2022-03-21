@@ -141,7 +141,7 @@ func (W *World) ConsumePositionerFoundByName(name string, fp ...base.FindPositio
 		}
 		s += " "
 	}
-	return nil, "", fmt.Errorf("вероятно вы что-то недоговариваете")
+	return nil, "", fmt.Errorf("вероятно Вы что-то недоговариваете")
 }
 
 // Строковым представлением мира является список строковых
