@@ -44,7 +44,11 @@ func (b *Envelope) New() *Envelope {
 			for _, obj := range b.Content() {
 				list = append(list, obj.Name())
 			}
-			return "Конверт вскрыт. Подпись: \"" + b.label + "\"" + ". В конверте " + engine.List(list...)
+			if len(list) > 0 {
+				return "Вскрытый конверт. Подпись: \"" + b.label + "\"" + ". В конверте " + engine.List(list...)
+			} else {
+				return "Пустой вскрытый конверт. Подпись: \"" + b.label + "\"" + "."
+			}
 		}
 		b.opened = true
 	}
