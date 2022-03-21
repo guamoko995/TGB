@@ -19,14 +19,14 @@ func Constructor() *engine.World {
 	buildTools.SetName(w.Pl, "игрок")
 
 	// Создание повествователя.
-	w.Nr.Texts = strings.Split(texts.GameText("введение"), "\n")
-
-	// После окончания повествования, повествователь передает роль
-	// исполнителя команд игроку.
-	w.Nr.NextImplementer = w.Pl
+	Nr := &Narrator{
+		Texts:           strings.Split(texts.GameText("введение"), "\n"),
+		W:               w,
+		NextImplementer: w.Pl,
+	}
 
 	// Назначение повествователя исполнителем команд.
-	w.NewActiveHandler(w.Nr)
+	w.NewActiveHandler(Nr)
 
 	var Obj base.Positioner
 	var Pos base.Conteiner
@@ -76,12 +76,18 @@ func Constructor() *engine.World {
 		}
 
 		// Создание повествователя.
-		w.Nr.Texts = strings.Split(texts.GameText("победа"), "\n")
-		w.Nr.NumberText = 0
+		Nr.Texts = strings.Split(texts.GameText("победа"), "\n")
+		Nr.NumberText = 0
+		Nr.NextImplementer = &Narrator{
+			Texts:           strings.Split(texts.GameText("шифр"), "\n"),
+			StatPrefix:      " послание",
+			NextImplementer: (*gameEnder).New(&gameEnder{}),
+			W:               w,
+		}
 
 		// Назначение повествователя исполнителем команд.
-		w.NewActiveHandler(w.Nr)
-		resp, _ := w.Nr.Handle("->")
+		w.NewActiveHandler(Nr)
+		resp, _ := Nr.Handle("->")
 		return resp
 	}
 
@@ -138,16 +144,4 @@ func Constructor() *engine.World {
 
 	// Возвращает вновь созданный мир.
 	return w
-}
-
-type stEvent struct {
-	check  func() bool
-	handle func() engine.Response
-}
-
-func (ev *stEvent) Check() bool {
-	return ev.check()
-}
-func (ev *stEvent) Handle() engine.Response {
-	return ev.handle()
 }

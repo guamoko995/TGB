@@ -28,9 +28,8 @@ type World struct {
 
 	Ev []Event // Цели и задачи игрока
 
-	ActiveHandler Handler   // Указатель на текущего исполнителя
-	Pl            Player    // Указатель на игрока
-	Nr            *Narrator // Указатель на повествователя
+	ActiveHandler Handler // Указатель на текущего исполнителя
+	Pl            Player  // Указатель на игрока
 }
 
 // Главный мировой обработчик запросов.
@@ -75,10 +74,9 @@ func (w *World) New() *World {
 	w = &World{
 		StNamer:     (*base.StNamer).New(&base.StNamer{}),
 		StConteiner: (*base.StConteiner).New(&base.StConteiner{}),
-		Nr:          &Narrator{},
-		Ev:          []Event{},
+		//Nr:          &Narrator{},
+		Ev: []Event{},
 	}
-	w.Nr.W = w
 	return w
 }
 
