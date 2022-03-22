@@ -41,6 +41,7 @@ type TreeHandlers struct {
 	OutputFormat func(string) string
 	Applications map[string]Handler
 	Stat         func() string
+	Opt          func() [][]string
 }
 
 func (*TreeHandlers) New() *TreeHandlers {
@@ -50,15 +51,19 @@ func (*TreeHandlers) New() *TreeHandlers {
 		InputFormat:  InputFormat,
 		OutputFormat: OutputFormat,
 	}
+	h.Opt = func() [][]string {
+		options := make([]string, 0)
+		for key := range h.Applications {
+			options = append(options, key)
+		}
+		return [][]string{options}
+	}
+
 	return &h
 }
 
 func (h *TreeHandlers) Options() [][]string {
-	options := make([]string, 0)
-	for key := range h.Applications {
-		options = append(options, key)
-	}
-	return [][]string{options}
+	return h.Opt()
 }
 
 func (h *TreeHandlers) Status() string {

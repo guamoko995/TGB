@@ -53,24 +53,24 @@ func (pl *Player) New() *Player {
 		}
 		return "[осмотр " + pl.Focus.Name("Р") + "]"
 	}
+	oldOpt := pl.Opt
+	pl.Opt = func() [][]string {
+		options := oldOpt()[0]
+		if pl.Focus == pl.Position() {
+			for i, option := range options {
+				if option == "х" {
+					l := len(options) - 1
+					options[i] = options[l]
+					options = options[:l]
+					break
+				}
+			}
+		}
+		return [][]string{options}
+	}
 	pl.invInit()
 	pl.CommandInit()
 	return pl
-}
-
-func (pl *Player) Options() [][]string {
-	options := pl.TreeHandlers.Options()[0]
-	if pl.Focus == pl.Position() {
-		for i, option := range options {
-			if option == "х" {
-				l := len(options) - 1
-				options[i] = options[l]
-				options = options[:l]
-				break
-			}
-		}
-	}
-	return [][]string{options}
 }
 
 // Проброс base.Conteiner метода инвентаря.
@@ -132,6 +132,7 @@ func (pl *Player) invInit() {
 	pl.Inv.Reposition(pl)
 }
 
+// Формирует стандартный ответ из сообщения.
 func (pl *Player) StResp(Msg string) engine.Response {
 	return engine.Response{
 		Msg:     Msg,
