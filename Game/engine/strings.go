@@ -94,10 +94,18 @@ func OutputFormat(output string) string {
 // Если текст представим в виде конкатенации одной из форм имени объекта
 // с некоторым остатком строки, то возвращает true и остаток строки.
 func ConsumeNameObj(obj base.Namer, text string) (bool, string) {
+	longName := ""
+	shortText := text
 	for _, name := range obj.Names() {
 		if ok, endText := ConsumePrefixWords(name, text); ok {
-			return true, endText
+			if len(longName) < len(name) {
+				longName = name
+				shortText = endText
+			}
 		}
+	}
+	if longName != "" {
+		return true, shortText
 	}
 	return false, text
 }
