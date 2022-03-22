@@ -26,7 +26,14 @@ func (te *TextEditor) New() *TextEditor {
 		return "[использование текстового редактора]"
 	}
 
-	te.InputFormat = func(s string) string { return s }
+	te.InputFormat = func(s string) string {
+		mStr := strings.Split(s, " ")
+		mStr[0] = engine.InputFormat(mStr[0])
+		if mStr[0] == "заменить" || mStr[0] == "посчитать" {
+			return strings.Join(mStr, " ")
+		}
+		return engine.InputFormat(s)
+	}
 	te.OutputFormat = func(s string) string { return s }
 	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		return te.StResp(te.Text.Print()), args
