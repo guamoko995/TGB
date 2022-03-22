@@ -58,8 +58,9 @@ func (sm *SlotMakhine) Handle(str string) (engine.Response, string) {
 	case "x":
 		return sm.W.NewActiveHandler(sm.NextHandler), ""
 	default:
-		R := []rune(str)[0]
-		sm.SmartClick(R)
+		for _, R := range str {
+			sm.SmartClick(R)
+		}
 	}
 	msg := make([]rune, 0)
 	for _, pos := range sm.Str {
