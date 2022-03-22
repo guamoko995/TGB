@@ -16,30 +16,45 @@ type TextEditor struct {
 	W           *engine.World
 }
 
+// Конструктор.
 func (te *TextEditor) New() *TextEditor {
 	te = &TextEditor{
 		TreeHandlers: (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
 	}
 	buildTools.SetName(te, "текстовый редактор")
 
+	// Установка статусной строки при использовании редактора.
 	te.Stat = func() string {
-		return "[использование текстового редактора]"
+		return "[редактор текста]"
 	}
 
+	// Замена функции обработки входной команды с целью учитывания
+	// регистра символов в коммандах заменить и посчитать.
 	te.InputFormat = func(s string) string {
-		mStr := strings.Split(s, " ")
+		// Применить стандартную функцию форматирования к первому слову.
+		mStr := strings.SplitN(s, " ", 2)
 		mStr[0] = engine.InputFormat(mStr[0])
+
+		// В случае если первое слово соответствует команде "заменить"
+		// или "посчитать", следующие слова не форматируются
 		if mStr[0] == "заменить" || mStr[0] == "посчитать" {
 			return strings.Join(mStr, " ")
 		}
+
+		// В противном случае ко всей строке применяется стандартная
+		// функция форматирования.
 		return engine.InputFormat(s)
 	}
+
+	// Выходное форматирование не используется, требуется следить за
+	// выходными текстами!
 	te.OutputFormat = func(s string) string { return s }
+
 	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		return te.StResp(te.Text.Print()), args
 	})
+
 	te.Applications["заменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
 		if args == "" {
 			resp := te.W.NewActiveHandler(&engine.Complementer{
 				W:               te.W,
@@ -62,16 +77,18 @@ func (te *TextEditor) New() *TextEditor {
 		te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
 		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
 	})
+
 	te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		te.Text.Down()
 		return te.StResp("текст переведен в нижжний регистр"), args
 	})
+
 	te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		te.Text.Up()
 		return te.StResp("текст переведен в верхний регистр"), args
 	})
+
 	te.Applications["посчитать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
 		if args == "" {
 			resp := te.W.NewActiveHandler(&engine.Complementer{
 				W:               te.W,
@@ -94,17 +111,20 @@ func (te *TextEditor) New() *TextEditor {
 		p := float32(100*n) / float32(all)
 		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте", s, n, p)), endStr
 	})
+
 	te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		te.Text.Reset()
 		return te.StResp("Все измененияя отменены"), args
 	})
+
 	te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		//W := engine.RootConteiner(b)
 		return te.W.NewActiveHandler(te.NextHandler), args
 	})
+
 	return te
 }
 
+// Формирует стандартный ответ из сообщения.
 func (te *TextEditor) StResp(Msg string) engine.Response {
 	return engine.Response{
 		Msg:     Msg,

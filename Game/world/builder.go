@@ -76,14 +76,9 @@ func Constructor() *engine.World {
 		}
 
 		// Создание повествователя.
-		Nr.Texts = strings.Split(texts.GameText("победа"), "\n")
+		Nr.Texts = []string{texts.GameText("победа"), texts.GameText("шифр")}
 		Nr.NumberText = 0
-		Nr.NextImplementer = &Narrator{
-			Texts:           strings.Split(texts.GameText("шифр"), "\n"),
-			StatPrefix:      " послание",
-			NextImplementer: (*gameEnder).New(&gameEnder{}),
-			W:               w,
-		}
+		Nr.NextImplementer = (*gameEnder).New(&gameEnder{})
 
 		// Назначение повествователя исполнителем команд.
 		w.NewActiveHandler(Nr)
