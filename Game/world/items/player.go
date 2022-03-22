@@ -47,16 +47,15 @@ func (pl *Player) New() *Player {
 		StPositioner: &base.StPositioner{},
 		TreeHandlers: (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
 	}
+	pl.Stat = func() string {
+		if pl.Focus == pl.Position() {
+			return "[ ]"
+		}
+		return "[осмотр " + pl.Focus.Name("Р") + "]"
+	}
 	pl.invInit()
 	pl.CommandInit()
 	return pl
-}
-
-func (pl *Player) Status() string {
-	if pl.Focus == pl.Position() {
-		return "[ ]"
-	}
-	return "[осмотр " + pl.Focus.Name("Р") + "]"
 }
 
 func (pl *Player) Options() [][]string {

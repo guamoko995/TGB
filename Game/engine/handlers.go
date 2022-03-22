@@ -40,6 +40,7 @@ type TreeHandlers struct {
 	InputFormat  func(string) string
 	OutputFormat func(string) string
 	Applications map[string]Handler
+	Stat         func() string
 }
 
 func (*TreeHandlers) New() *TreeHandlers {
@@ -61,7 +62,7 @@ func (h *TreeHandlers) Options() [][]string {
 }
 
 func (h *TreeHandlers) Status() string {
-	return ""
+	return h.Stat()
 }
 
 func (h *TreeHandlers) Handle(request string) (Response, string) {

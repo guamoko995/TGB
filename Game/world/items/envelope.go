@@ -17,10 +17,6 @@ type Envelope struct {
 	label  string
 }
 
-func (b *Envelope) Status() string {
-	return "[действия с конвертом]"
-}
-
 func (b *Envelope) New() *Envelope {
 	b = &Envelope{
 		StPositioner:       &base.StPositioner{},
@@ -28,6 +24,11 @@ func (b *Envelope) New() *Envelope {
 		StLimitedConteiner: (*base.StLimitedConteiner).New(&base.StLimitedConteiner{}),
 		TreeHandlers:       (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
 	}
+
+	b.Stat = func() string {
+		return "[действия с конвертом]"
+	}
+
 	buildTools.SetName(b, "конверт")
 	b.Resize(5)
 	b.Recapacity(4)

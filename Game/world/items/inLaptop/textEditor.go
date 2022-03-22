@@ -22,6 +22,10 @@ func (te *TextEditor) New() *TextEditor {
 	}
 	buildTools.SetName(te, "текстовый редактор")
 
+	te.Stat = func() string {
+		return "[использование текстового редактора]"
+	}
+
 	te.InputFormat = func(s string) string { return s }
 	te.OutputFormat = func(s string) string { return s }
 	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
@@ -100,8 +104,4 @@ func (te *TextEditor) StResp(Msg string) engine.Response {
 		Status:  te.Status(),
 		Options: te.Options(),
 	}
-}
-
-func (te *TextEditor) Status() string {
-	return "[использование текстового редактора]"
 }

@@ -15,16 +15,17 @@ type Couch struct {
 	about string
 }
 
-func (b *Couch) Status() string {
-	return "[использование кушетки]"
-}
-
 func (b *Couch) New() *Couch {
 	b = &Couch{
 		StPositioner: &base.StPositioner{},
 		StSizer:      &base.StSizer{},
 		TreeHandlers: (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
 	}
+
+	b.Stat = func() string {
+		return "[использование кушетки]"
+	}
+
 	buildTools.SetName(b, "кушетка")
 	b.Resize(2500)
 	b.about = "Хорошее место чтобы немного вздремнуть. Интересно, что " +
@@ -48,13 +49,8 @@ func (b *Couch) New() *Couch {
 		return resp, args
 	})
 	b.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		resp := engine.Response{
-			Msg:     "",
-			Status:  b.Status(),
-			Options: b.Options(),
-		}
 		W := engine.RootConteiner(b)
-		W.NewActiveHandler(W.Pl)
+		resp := W.NewActiveHandler(W.Pl)
 		return resp, args
 	})
 	return b

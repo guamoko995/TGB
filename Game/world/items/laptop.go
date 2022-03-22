@@ -23,10 +23,6 @@ type Laptop struct {
 	useMan bool
 }
 
-func (b *Laptop) Status() string {
-	return "[использование ноутбука]"
-}
-
 func (b *Laptop) Text() string {
 	return b.te.Text.Print()
 }
@@ -41,6 +37,10 @@ func (b *Laptop) New() *Laptop {
 		sm: &inLaptop.SlotMakhine{
 			SlotMakhine: &worldGame.SlotMakhine{},
 		},
+	}
+
+	b.Stat = func() string {
+		return "[использование ноутбука]"
 	}
 
 	// Текст состоит из двух текстов. Первый - не большой реально
@@ -141,7 +141,7 @@ func (b *Laptop) New() *Laptop {
 		resp.Msg = obj.Name() + " отключен" + o + " от " + b.Name("Р") + " и помещен" + o + " " + W.Pl.(*Player).Inv.Name("куда")
 		return resp, endStr
 	})
-	b.Applications["запустить текстовый редактор"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+	b.Applications["запустить редактор текcта"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		resp := engine.Response{
 			Msg:     "",
 			Status:  b.Status(),
@@ -151,11 +151,9 @@ func (b *Laptop) New() *Laptop {
 			W := engine.RootConteiner(b)
 			b.sm.W = W
 			b.te.W = W
-			/*if b.useMan {
-				resp = W.NewActiveHandler(b.sm)
-			} else {*/
+
 			ok := engine.FindObjByPartName(
-				"инструкция",
+				"конспект по криптоанализу",
 				base.FindPosition{
 					Where:       W.Pl.(*Player),
 					Deep:        0,
@@ -163,17 +161,17 @@ func (b *Laptop) New() *Laptop {
 				},
 			)
 			if ok {
-				b.te.Applications["воспользоваться инструкцией"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+				b.te.Applications["воспользоваться конспектом"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 					msg := ""
 					if !b.useMan {
-						msg = texts.GameText("первое использование инструкции")
+						msg = texts.GameText("первое использование конспекта")
 
 						// Производит замену букв в тексте в соответствии с
 						// распространенностью букв в русском языке
 						b.sm.SetText(text)
 						b.useMan = true
 					} else {
-						msg = texts.GameText("второе использование инструкции")
+						msg = texts.GameText("второе использование конспекта")
 					}
 					b.sm.Update()
 					resp := W.NewActiveHandler(b.sm)
@@ -181,7 +179,7 @@ func (b *Laptop) New() *Laptop {
 					return resp, args
 				})
 			} else {
-				delete(b.te.Applications, "воспользоваться инструкцией")
+				delete(b.te.Applications, "воспользоваться конспектом")
 			}
 			resp = W.NewActiveHandler(b.te)
 			//}
@@ -197,7 +195,7 @@ func (b *Laptop) New() *Laptop {
 				"- заново (отменяет все совершенные замены)."
 
 			if ok {
-				resp.Msg = resp.Msg + "\n\nЕще Вы можете просто воспользоваться инструкцией, которую Вы предусмотрительно держите при себе."
+				resp.Msg = resp.Msg + "\n\nЕще Вы можете просто воспользоваться конспектом по криптоанализу, который Вы предусмотрительно держите при себе."
 				return resp, args
 			}
 			return resp, args
@@ -235,9 +233,3 @@ func (pc *Laptop) Take(obj base.Positioner) error {
 	}
 	return fmt.Errorf("Ноутбук не предусматривает возможность подключения " + obj.Name("Р"))
 }
-
-/*func Murakami() worldGame.PsevdoText {
-	copyText := worldGame.PsevdoText(make([]worldGame.RuneCount, len([]worldGame.RuneCount(varMurakami))))
-	copy([]worldGame.RuneCount(copyText), []worldGame.RuneCount(varMurakami))
-	return copyText
-}*/
