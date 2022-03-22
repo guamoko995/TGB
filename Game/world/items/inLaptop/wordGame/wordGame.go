@@ -56,10 +56,10 @@ type SlotMakhine struct {
 }
 
 // Контрольная сумма. Уникальна для каждого положения спинов.
-func (sm *SlotMakhine) kSum() int {
-	sum := 0
+func (sm *SlotMakhine) kSum() uint64 {
+	sum := uint64(0)
 	for i, pos := range sm.Str {
-		sum += pos.p*2 ^ (3 * i)
+		sum += uint64(pos.p) << (i * 3)
 	}
 	return sum
 }
