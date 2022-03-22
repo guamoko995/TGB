@@ -17,11 +17,10 @@ func SetName(obj base.Namer, name string) {
 	}
 	m[""] = name
 	val, ok := m["род"]
-	if !ok {
-		return
+	if ok {
+		obj.AddInfo(base.Title{Form: "род", Value: val})
+		delete(m, "род")
 	}
-	obj.AddInfo(base.Title{Form: "род", Value: val})
-	delete(m, "род")
 	mas := make([]base.Title, 0)
 	for key, val := range m {
 		mas = append(mas, base.Title{Form: key, Value: val})

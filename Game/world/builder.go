@@ -16,7 +16,7 @@ func Constructor() *engine.World {
 
 	// Создание игрока.
 	w.Pl = (*items.Player).New(&items.Player{})
-	buildTools.SetName(w.Pl, "игрок")
+	buildTools.SetName(w.Pl, "Вы")
 
 	// Создание повествователя.
 	Nr := &Narrator{
