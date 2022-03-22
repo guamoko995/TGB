@@ -18,11 +18,12 @@ func (b *Manual) New() *Manual {
 		StPositioner: &base.StPositioner{},
 		StSizer:      &base.StSizer{},
 	}
-	buildTools.SetName(b, "инструкция")
+	buildTools.SetName(b, "конспект по криптоанализу")
+	buildTools.SetAdditName(b, "конспект", "сокр")
 	b.Resize(5)
 	return b
 }
 
 func (b *Manual) String() string {
-	return "инструкция по дешифровке"
+	return "здесь есть разбор взлома шифра простой замены. Может пригодиться."
 }
