@@ -65,7 +65,7 @@ type gameEnder struct {
 }
 
 func (*gameEnder) Options() [][]string {
-	return [][]string{{"сотрудничать", "отказаться"}}
+	return [][]string{{"сотрудничать", "быть уничтоженным"}}
 }
 
 func (ge *gameEnder) Status() string {
@@ -86,7 +86,7 @@ func (ge *gameEnder) Handle(request string) (engine.Response, string) {
 
 func (ge *gameEnder) New() *gameEnder {
 	ge.status = "[принятие решения]"
-	ge.msg = "Вашь ответ поступил в очередь на обработку"
+	ge.msg = "Ваш ответ поступил в очередь на обработку"
 	return ge
 }
 
