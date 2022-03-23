@@ -59,8 +59,10 @@ func Constructor() *engine.World {
 	// Сохранение стола в качестве позиции.
 	Pos = Obj.(base.Conteiner)
 
+	couch, coffee := items.NewCouchAndCoffee()
+
 	// Создание чашки кофе.
-	Obj = (*items.Coffee).New(&items.Coffee{})
+	Obj = coffee
 
 	// Размещение чашки кофе в сохраненную позицию (на стол).
 	base.Place(Obj, Pos)
@@ -117,7 +119,7 @@ func Constructor() *engine.World {
 	base.Place(Obj, Pos)
 
 	// Создание кушетки.
-	Obj = (*items.Couch).New(&items.Couch{})
+	Obj = couch
 
 	// Размещение кушетки в кабинете
 	base.Place(Obj, w.Locations("кабинет"))

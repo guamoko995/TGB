@@ -15,6 +15,37 @@ type Couch struct {
 	about string
 }
 
+func NewCouchAndCoffee() (*Couch, *Coffee) {
+	couch := (*Couch).New(&Couch{})
+	coffee := (*Coffee).New(&Coffee{})
+	dr := coffee.Applications["выпить кофе"]
+	coffee.Applications["выпить кофе"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		resp, str := dr.Handle(args)
+		couch.about = "Хорошее место для дневного сна."
+		couch.Applications["лечь спать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+			W := engine.RootConteiner(couch)
+			resp := W.NewActiveHandler(W.Pl)
+			resp.Msg = "Вы представляли, что пьете кофе, а теперь у Вас не получается представить, что вы спите. " +
+				"Наблюдается ярко выраженное психосоматическое явление."
+			return resp, args
+		})
+		return resp, str
+	})
+
+	sl := couch.Applications["лечь спать"]
+	couch.Applications["лечь спать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		resp, str := sl.Handle(args)
+		coffee.about = "Холодный кофе - то что нужно чтобы взбодриться"
+		coffee.Applications["выпить кофе"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+			resp, str := dr.Handle(args)
+			resp.Msg = texts.GameText("холодный кофе")
+			return resp, str
+		})
+		return resp, str
+	})
+	return couch, coffee
+}
+
 func (b *Couch) New() *Couch {
 	b = &Couch{
 		StPositioner: &base.StPositioner{},
@@ -81,7 +112,7 @@ func (b *Coffee) New() *Coffee {
 
 	buildTools.SetName(b, "чашка кофе")
 	b.Resize(20)
-	b.about = "Горячий кофе, то что нужно чтобы взбодриться"
+	b.about = "Горячий кофе - то что нужно чтобы взбодриться"
 
 	apdate := func() {
 		b.Applications = map[string]engine.Handler{}
