@@ -30,7 +30,7 @@ func (b *Bookcase) New() *Bookcase {
 	}
 	buildTools.SetName(b, "книжный шкаф")
 	buildTools.SetAdditName(b, "шкаф", "сокр")
-	b.Resize(250)
-	b.Recapacity(200)
+	b.Resize(2500)
+	b.Recapacity(2000)
 	return b
 }

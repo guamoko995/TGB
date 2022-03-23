@@ -23,8 +23,8 @@ func (b *TableWithDrawer) New() *TableWithDrawer {
 		StSizer:            &base.StSizer{},
 	}
 	buildTools.SetName(b, "стол")
-	b.Resize(250)
-	b.Recapacity(200)
+	b.Resize(2500)
+	b.Recapacity(2000)
 
 	//var Obj base.Positioner
 

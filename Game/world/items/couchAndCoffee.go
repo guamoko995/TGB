@@ -59,3 +59,51 @@ func (b *Couch) New() *Couch {
 func (b *Couch) String() string {
 	return b.about
 }
+
+// Предмет: чашка кофе.
+type Coffee struct {
+	*base.StPositioner
+	*base.StSizer
+	*engine.TreeHandlers
+	about string
+}
+
+func (b *Coffee) New() *Coffee {
+	b = &Coffee{
+		StPositioner: &base.StPositioner{},
+		StSizer:      &base.StSizer{},
+		TreeHandlers: (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
+	}
+
+	b.Stat = func() string {
+		return "[использование чашки кофе]"
+	}
+
+	buildTools.SetName(b, "чашка кофе")
+	b.Resize(20)
+	b.about = "Горячий кофе, то что нужно чтобы взбодриться"
+
+	apdate := func() {
+		b.Applications = map[string]engine.Handler{}
+		b.about = "Здесь остатки кофе. Кофейная гуща предсказывает шокирующие новости и трудный выбор"
+		buildTools.SetName(b, "чашка")
+	}
+
+	b.Applications["выпить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		W := engine.RootConteiner(b)
+		defer apdate()
+		resp := W.NewActiveHandler(W.Pl)
+		resp.Msg = texts.GameText("кофе")
+		return resp, args
+	})
+	b.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		W := engine.RootConteiner(b)
+		resp := W.NewActiveHandler(W.Pl)
+		return resp, args
+	})
+	return b
+}
+
+func (b *Coffee) String() string {
+	return b.about
+}
