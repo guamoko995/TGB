@@ -6,5 +6,5 @@ var Image = map[string]string{
 }
 
 var Doc = map[string]string{
-	"конспект": "BQACAgIAAxkBAALmDmI68n3dMnJ7rOJ0a99IFgY1O7sIAAItFAAC63_YSUwGrGyf9vivIwQ",
+	"конспект": "BQACAgIAAxkBAALnMmI7HJzWD4gzgo5eqvEM8T_dE1mfAAJwFQAC63_YSbc80fAuEAfHIwQ",
 }
