@@ -195,6 +195,8 @@ func Keyboard(options [][]string) interface{} {
 func Send(ID int64, resp engine.Response) {
 	photo := tgbotapi.NewPhotoShare(ID, resp.Img)
 	bot.Send(photo) // Отправка изображения.
+	doc := tgbotapi.NewDocumentShare(ID, resp.Doc)
+	bot.Send(doc) // Отправка документа.
 	msg := tgbotapi.NewMessage(ID, resp.Msg)
 	bot.Send(msg) // Отправка основного сообщения.
 	msg = tgbotapi.NewMessage(ID, resp.Status)

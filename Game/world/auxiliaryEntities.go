@@ -40,9 +40,16 @@ func (n *Narrator) Handle(str string) (engine.Response, string) {
 	if len(mStr) > 1 {
 		img = mediafiles.Image[mStr[1]]
 	}
+	mStr = strings.SplitN(t, "<doc>", 2)
+	t = mStr[0]
+	doc := ""
+	if len(mStr) > 1 {
+		doc = mediafiles.Doc[mStr[1]]
+	}
 	if n.NumberText < l {
 		n.NumberText++
 		return engine.Response{
+			Doc:     doc,
 			Img:     img,
 			Msg:     t,
 			Status:  n.Status(),
@@ -51,6 +58,7 @@ func (n *Narrator) Handle(str string) (engine.Response, string) {
 	} else {
 		n.W.ActiveHandler = n.NextImplementer
 		return engine.Response{
+			Doc:     doc,
 			Img:     img,
 			Msg:     t,
 			Status:  n.W.ActiveHandler.Status(),
