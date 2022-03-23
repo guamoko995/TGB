@@ -62,7 +62,7 @@ func (b *Laptop) New() *Laptop {
 	b.te.Text = text
 
 	buildTools.SetName(b, "ноутбук")
-	b.Resize(3)
+	b.Resize(30)
 	b.Recapacity(3)
 
 	b.Applications["подключить оборудование"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {

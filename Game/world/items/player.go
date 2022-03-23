@@ -24,7 +24,7 @@ func (b *Inventory) New() *Inventory {
 		StPositioner:       &base.StPositioner{},
 		StLimitedConteiner: (*base.StLimitedConteiner).New(&base.StLimitedConteiner{}),
 	}
-	b.Recapacity(100)
+	b.Recapacity(1000)
 	return b
 }
 

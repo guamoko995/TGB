@@ -29,7 +29,7 @@ func (b *Manual) New() *Manual {
 
 	buildTools.SetName(b, "конспект по криптоанализу")
 	buildTools.SetAdditName(b, "конспект", "сокр")
-	b.Resize(5)
+	b.Resize(10)
 
 	b.Applications["ознакомиться"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		W := engine.RootConteiner(b)

@@ -19,6 +19,6 @@ func (b *Armchair) New() *Armchair {
 		StSizer:      &base.StSizer{},
 	}
 	buildTools.SetName(b, "кресло")
-	b.Resize(250)
+	b.Resize(1001)
 	return b
 }

@@ -25,8 +25,8 @@ func (b *Drawer) New() *Drawer {
 	}
 	buildTools.SetName(b, "выдвижной ящик")
 	buildTools.SetAdditName(b, "ящик", "сокр")
-	b.Resize(20)
-	b.Recapacity(20)
+	b.Resize(200)
+	b.Recapacity(200)
 	return b
 }
 
