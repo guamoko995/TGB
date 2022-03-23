@@ -156,6 +156,15 @@ func Keyboard(options [][]string) interface{} {
 		}
 		// Создание клавиатуры с двумя кнопками в строке.
 		sort.Slice(options[0], func(i, j int) bool { return options[0][i] < options[0][j] })
+		for i, opt := range options[0] {
+			// Опция х - всегда последняя
+			if opt == "х" {
+				options = [][]string{append(options[0][:i], append(options[0][i+1:], options[0][i])...)}
+				//l = len(options[0]) - 1
+				//options[0][i], options[0][l] = options[0][l], options[0][i]
+				break
+			}
+		}
 		for i := 0; i < l; i += 2 {
 			pos := []tgbotapi.KeyboardButton{
 				{
