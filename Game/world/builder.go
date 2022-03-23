@@ -76,7 +76,7 @@ func Constructor() *engine.World {
 		}
 
 		// Создание повествователя.
-		Nr.Texts = []string{texts.GameText("победа"), texts.GameText("шифр")}
+		Nr.Texts = []string{texts.GameText("победа"), texts.GameText("шифр") + texts.GameText("Мураками")}
 		Nr.NumberText = 0
 		Nr.NextImplementer = (*gameEnder).New(&gameEnder{})
 
