@@ -161,7 +161,7 @@ func (b *Laptop) New() *Laptop {
 				},
 			)
 			if ok {
-				b.te.Applications["воспользоваться конспектом"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+				b.te.Applications["применить конспект"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 					msg := ""
 					if !b.useMan {
 						msg = texts.GameText("первое использование конспекта")
@@ -195,7 +195,7 @@ func (b *Laptop) New() *Laptop {
 				"- заново - отменяет все совершенные замены."
 
 			if ok {
-				resp.Msg = resp.Msg + "\n\nЕще Вы можете воспользоваться конспектом по криптоанализу, который предусмотрительно держите при себе."
+				resp.Msg = resp.Msg + "\n\nЕще Вы можете применить конспект по криптоанализу, который предусмотрительно держите при себе."
 				return resp, args
 			}
 			return resp, args
