@@ -89,7 +89,7 @@ func (b *Coffee) New() *Coffee {
 		buildTools.SetName(b, "чашка")
 	}
 
-	b.Applications["выпить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+	b.Applications["выпить кофе"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
 		W := engine.RootConteiner(b)
 		defer apdate()
 		resp := W.NewActiveHandler(W.Pl)

@@ -160,8 +160,6 @@ func Keyboard(options [][]string) interface{} {
 			// Опция х - всегда последняя
 			if opt == "х" {
 				options = [][]string{append(options[0][:i], append(options[0][i+1:], options[0][i])...)}
-				//l = len(options[0]) - 1
-				//options[0][i], options[0][l] = options[0][l], options[0][i]
 				break
 			}
 		}
