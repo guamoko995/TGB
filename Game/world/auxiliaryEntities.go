@@ -70,6 +70,7 @@ func (n *Narrator) Handle(str string) (engine.Response, string) {
 type gameEnder struct {
 	status string
 	msg    string
+	img    string
 }
 
 func (*gameEnder) Options() [][]string {
@@ -84,8 +85,10 @@ func (ge *gameEnder) Handle(request string) (engine.Response, string) {
 	ge.status = "[конец ознакомительного фрагмента]"
 	msg := ge.msg
 	ge.msg = "Вы можете начать игру заново по команде /start"
+	img := ge.img
+	ge.img = ""
 	return engine.Response{
-		Img:     mediafiles.Image["Juno finish"],
+		Img:     img,
 		Msg:     msg,
 		Status:  ge.status,
 		Options: [][]string{},
@@ -95,6 +98,7 @@ func (ge *gameEnder) Handle(request string) (engine.Response, string) {
 func (ge *gameEnder) New() *gameEnder {
 	ge.status = "[принятие решения]"
 	ge.msg = "Ваш ответ поступил в очередь на обработку"
+	ge.img = mediafiles.Image["Juno finish"]
 	return ge
 }
 
