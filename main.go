@@ -3,12 +3,14 @@ package main
 import (
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world"
+	"database/sql"
 	"fmt"
 	"os"
 	"reflect"
 	"sort"
 
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
+	_ "modernc.org/sqlite"
 )
 
 // Объект API Telegram.
@@ -31,6 +33,15 @@ func main() {
 
 	// Создаёт канал получения обновлений.
 	updates, _ := bot.GetUpdatesChan(u)
+
+	// Подключается к базе данных.
+	engine.DB, err = sql.Open("sqlite", "test.bd")
+	if err != nil {
+		panic(err)
+	}
+
+	// Гарантирует отключение от базы данных перед завершением программы
+	defer engine.DB.Close()
 
 	for update := range updates {
 		// Обрабатывает обновления.
@@ -94,6 +105,9 @@ func handler(update tgbotapi.Update) {
 		// Создает новый мир.
 		W = world.Constructor()
 		engine.Worlds[ID] = W
+
+		result, err := engine.DB.Exec("insert into USERS (ID, NAME, REQUESTS,PASSEDS) values ($1, $2, $3, $4)", ID, UserName, 0, 0)
+		fmt.Println(result, err)
 	}
 
 	// Вызов внутриигрового обработчика команд.
