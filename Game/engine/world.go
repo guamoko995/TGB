@@ -2,6 +2,7 @@ package engine
 
 import (
 	"TelegramGameBot/Game/base"
+	"database/sql"
 	"fmt"
 	"strings"
 	"sync"
@@ -9,6 +10,9 @@ import (
 
 // Каждому пользователю соответствует один игровой мир.
 var Worlds = make(map[int64]*World)
+
+// Информация по каждому пользователю хранится в базе данных.
+var DB *sql.DB
 
 type Player interface {
 	Handler         // Является исполнителем
@@ -74,8 +78,7 @@ func (w *World) New() *World {
 	w = &World{
 		StNamer:     (*base.StNamer).New(&base.StNamer{}),
 		StConteiner: (*base.StConteiner).New(&base.StConteiner{}),
-		//Nr:          &Narrator{},
-		Ev: []Event{},
+		Ev:          []Event{},
 	}
 	return w
 }
