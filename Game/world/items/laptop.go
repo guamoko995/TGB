@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-var Murakami = worldGame.NewPsevdoText("Game/mediaFiles/Murakami.txt")
+var Murakami = worldGame.NewPsevdoText("Murakami.txt")
 
 // Предмет: ноутбук.
 type Laptop struct {
