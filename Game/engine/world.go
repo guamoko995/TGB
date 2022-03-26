@@ -2,7 +2,7 @@ package engine
 
 import (
 	"TelegramGameBot/Game/base"
-	"database/sql"
+	"TelegramGameBot/users"
 	"fmt"
 	"strings"
 	"sync"
@@ -12,7 +12,7 @@ import (
 var Worlds = make(map[int64]*World)
 
 // Информация по каждому пользователю хранится в базе данных.
-var DB *sql.DB
+var DB *users.DB
 
 type Player interface {
 	Handler         // Является исполнителем
@@ -26,6 +26,8 @@ type Event interface {
 
 type World struct {
 	Mu sync.Mutex
+
+	ID int64
 
 	*base.StConteiner // Мир содержит локации
 	*base.StNamer     // !!!need fix контейнер должен иметь имя чтобы реализовать интерфейс base.Conteiner

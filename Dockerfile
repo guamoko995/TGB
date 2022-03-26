@@ -25,9 +25,9 @@ FROM gcr.io/distroless/base-debian10
 WORKDIR /
 
 COPY --from=build /tgb /tgb
-COPY --from=build /app/Game/mediaFiles/Murakami.txt /
+COPY --from=build /app/Murakami.txt /
 
-USER nonroot:nonroot
+##USER nonroot:nonroot
 
 ARG TGBtoken=your_token
 ENV TGBtoken="${TGBtoken}"

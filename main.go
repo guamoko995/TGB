@@ -3,14 +3,13 @@ package main
 import (
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world"
-	"database/sql"
+	"TelegramGameBot/users"
 	"fmt"
 	"os"
 	"reflect"
 	"sort"
 
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
-	_ "modernc.org/sqlite"
 )
 
 // Объект API Telegram.
@@ -35,7 +34,7 @@ func main() {
 	updates, _ := bot.GetUpdatesChan(u)
 
 	// Подключается к базе данных.
-	engine.DB, err = sql.Open("sqlite", "test.bd")
+	engine.DB, err = users.NewDB("./BD/tgb.bd")
 	if err != nil {
 		panic(err)
 	}
@@ -104,10 +103,14 @@ func handler(update tgbotapi.Update) {
 
 		// Создает новый мир.
 		W = world.Constructor()
+		W.ID = ID
 		engine.Worlds[ID] = W
 
-		result, err := engine.DB.Exec("insert into USERS (ID, NAME, REQUESTS,PASSEDS) values ($1, $2, $3, $4)", ID, UserName, 0, 0)
-		fmt.Println(result, err)
+		// Добавляет игрока в базу данных, в случае если его там еще нет.
+		engine.DB.Add(ID, UserName)
+
+		// Добавляет количество стартов игрока.
+		engine.DB.Up(ID, engine.DB.UpStarts)
 	}
 
 	// Вызов внутриигрового обработчика команд.
@@ -134,6 +137,9 @@ func panicHandler(ID int64, UserName string, Request string) {
 
 // Внутриигровой обработчик пользовательских запросов.
 func inGameHandler(ID int64, Request string) {
+	// Увеличение количества сообщений игрока в базе данных.
+	engine.DB.Up(ID, engine.DB.UpMessages)
+
 	// Блокировка доступа к игровому миру для других горутин.
 	engine.Worlds[ID].Mu.Lock()
 

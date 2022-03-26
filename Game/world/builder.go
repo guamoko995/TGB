@@ -91,6 +91,9 @@ func Constructor() *engine.World {
 		// Назначение повествователя исполнителем команд.
 		w.NewActiveHandler(Nr)
 		resp, _ := Nr.Handle("->")
+
+		engine.DB.Up(w.ID, engine.DB.UpPasseds)
+
 		return resp
 	}
 
