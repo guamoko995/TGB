@@ -1,8 +1,8 @@
 package mediafiles
 
 var Image = map[string]string{
-	"Juno finish": "AgACAgIAAxkBAAKmHGIw4QTuMmdy6uM8h4mBbD1yKl_MAALmvDEbQBxpSQPdw7rtLCQwAQADAgADeQADIwQ",
-	"Juno start":  "AgACAgIAAxkBAAKsAAFiNykNfhlzgMPs297xn0GY6H4Z5AACnrsxG2uIuEmZJrsmk-MSZwEAAwIAA3MAAyME",
+	"finish": "AgACAgIAAxkBAAL6NWJAp8wie2FiS7yvLrkYAAGOEDvusgACdbwxG6PAAAFKoJy4pygVNL8BAAMCAANzAAMjBA",
+	"start":  "AgACAgIAAxkBAAL6RGJAqWpGHj5VXPObOe8bhFM8OMt_AAJ6vDEbo8AAAUp_VcYDKloXUwEAAwIAA3MAAyME",
 }
 
 var Doc = map[string]string{

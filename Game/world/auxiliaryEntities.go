@@ -98,7 +98,7 @@ func (ge *gameEnder) Handle(request string) (engine.Response, string) {
 func (ge *gameEnder) New() *gameEnder {
 	ge.status = "[принятие решения]"
 	ge.msg = "Ваш ответ поступил в очередь на обработку"
-	ge.img = mediafiles.Image["Juno finish"]
+	ge.img = mediafiles.Image["finish"]
 	return ge
 }
 
