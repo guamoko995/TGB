@@ -47,6 +47,9 @@ func (w *World) Handle(req string) []Response {
 
 		resps = append(resps, resp)
 
+		// Отслеживание прогресса игры.
+		resps = append(resps, w.checkProgres()...)
+
 		if remainder == "" {
 			// Если обработан весь запрос, цикл завершается.
 			break
@@ -55,9 +58,6 @@ func (w *World) Handle(req string) []Response {
 			req = remainder
 		}
 	}
-
-	// Отслеживание прогресса игры.
-	resps = append(resps, w.checkProgres()...)
 	return resps
 }
 
