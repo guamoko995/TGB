@@ -68,35 +68,46 @@ func Constructor() *engine.World {
 	base.Place(Obj, Pos)
 
 	// Создание ноутбука.
-	Obj = (*items.Laptop).New(&items.Laptop{})
+	lp := (*items.Laptop).New(&items.Laptop{})
+	Obj = lp
 
-	lp := Obj.(*items.Laptop)
+	// Создание события <победа>
 	win := stEvent{}
+
+	// Отслеживание победы
 	win.check = func() bool {
 		t1 := engine.InputFormat(lp.Text())
 		t2 := engine.InputFormat(texts.GameText("шифр"))
 		return t1 == t2
 	}
+
+	// Что делать при наступлении победы
 	win.handle = func() engine.Response {
-		// Предотвращает повторную обработку события
+		// Предотвращает повторную обработку события (Победить можно один раз).
 		win.check = func() bool {
 			return false
 		}
 
-		// Создание повествователя.
-		Nr.Texts = []string{texts.GameText("победа"), texts.GameText("шифр") + texts.GameText("Мураками")}
+		// Переконфигурирование повествователя.
+		Nr.Texts = []string{texts.GameText("победа"), texts.GameText("шифр") + "... " + texts.GameText("Мураками")}
 		Nr.NumberText = 0
+
+		// Создание заглушки конца игры после того как повествователь отработал.
 		Nr.NextImplementer = (*gameEnder).New(&gameEnder{})
 
 		// Назначение повествователя исполнителем команд.
 		w.NewActiveHandler(Nr)
+
+		// Старт повествователя.
 		resp, _ := Nr.Handle("->")
 
+		// Увеличение счетчика прохождений в базе данных.
 		engine.DB.Up(w.ID, engine.DB.UpPasseds)
 
 		return resp
 	}
 
+	// Добавление события победы в список отслеживаемых событий.
 	w.Ev = append(w.Ev, &win)
 
 	// Размещение ноутбука в сохраненную позицию (на стол).
