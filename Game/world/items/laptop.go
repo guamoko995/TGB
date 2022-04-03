@@ -60,12 +60,10 @@ func (b *Laptop) New() *Laptop {
 		return "[использование ноутбука]"
 	}
 
-	text := newGameText()
+	b.te.Text = newGameText()
 	// Текст зашифрован случайной заменой.
 	crMap := wordGame.GenCryptMap()
-	text.Crypt(crMap)
-
-	b.te.Text = text
+	b.te.Text.Crypt(crMap)
 
 	buildTools.SetName(b, "ноутбук")
 	b.Resize(30)
@@ -173,11 +171,10 @@ func (b *Laptop) New() *Laptop {
 						msg = texts.GameText("первое использование конспекта")
 
 						// Сбрасывает возможные изменения внесенные игроком.
-						text = newGameText()
-
+						b.te.Text = newGameText()
 						// Производит замену букв в тексте в соответствии с
 						// распространенностью букв в русском языке
-						b.sm.SetText(text)
+						b.sm.SetText(b.te.Text)
 						b.useMan = true
 					} else {
 						msg = texts.GameText("второе использование конспекта")
