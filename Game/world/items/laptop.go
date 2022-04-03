@@ -5,12 +5,29 @@ import (
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world/buildTools"
 	inLaptop "TelegramGameBot/Game/world/items/inLaptop"
-	worldGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
+	wordGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
 	"TelegramGameBot/Game/world/texts"
 	"fmt"
 )
 
-var Murakami = worldGame.NewPsevdoText("Murakami.txt")
+var Murakami = wordGame.NewPsevdoText("Murakami.txt")
+
+// Создает новый экземпляр исходного игрового текста (послания)
+// в отдельной области памяти (не указатель на исходный)
+// для последующего редактирования.
+func newGameText() wordGame.MQT {
+	// Текст состоит из двух текстов. Первый - не большой реально
+	// отображаемый, второй - не отображаемый псевдотекст (карта,
+	// ключи которой составляют русский алфавит, а значения
+	// соответствуют количеству символов, соответствующих ключу в
+	// тексте).
+	copyText := wordGame.PsevdoText(make([]wordGame.RuneCount, len([]wordGame.RuneCount(Murakami))))
+	copy([]wordGame.RuneCount(copyText), []wordGame.RuneCount(Murakami))
+	return wordGame.MQT([]wordGame.QwestText{
+		wordGame.QwestText(wordGame.NewQText(texts.GameText("шифр"))),
+		wordGame.QwestText(copyText),
+	})
+}
 
 // Предмет: ноутбук.
 type Laptop struct {
@@ -35,7 +52,7 @@ func (b *Laptop) New() *Laptop {
 		TreeHandlers:       (*engine.TreeHandlers).New(&engine.TreeHandlers{}),
 		te:                 (*inLaptop.TextEditor).New(&inLaptop.TextEditor{}),
 		sm: &inLaptop.SlotMakhine{
-			SlotMakhine: &worldGame.SlotMakhine{},
+			SlotMakhine: &wordGame.SlotMakhine{},
 		},
 	}
 
@@ -43,20 +60,9 @@ func (b *Laptop) New() *Laptop {
 		return "[использование ноутбука]"
 	}
 
-	// Текст состоит из двух текстов. Первый - не большой реально
-	// отображаемый, второй - не отображаемый псевдотекст (карта,
-	// ключи которой составляют русский алфавит, а значения
-	// соответствуют количеству символов, соответствующих ключу в
-	// тексте).
-	copyText := worldGame.PsevdoText(make([]worldGame.RuneCount, len([]worldGame.RuneCount(Murakami))))
-	copy([]worldGame.RuneCount(copyText), []worldGame.RuneCount(Murakami))
-	text := worldGame.MQT([]worldGame.QwestText{
-		worldGame.QwestText(worldGame.NewQText(texts.GameText("шифр"))),
-		worldGame.QwestText(copyText),
-	})
-
+	text := newGameText()
 	// Текст зашифрован случайной заменой.
-	crMap := worldGame.GenCryptMap()
+	crMap := wordGame.GenCryptMap()
 	text.Crypt(crMap)
 
 	b.te.Text = text
@@ -165,6 +171,9 @@ func (b *Laptop) New() *Laptop {
 					msg := ""
 					if !b.useMan {
 						msg = texts.GameText("первое использование конспекта")
+
+						// Сбрасывает возможные изменения внесенные игроком.
+						text = newGameText()
 
 						// Производит замену букв в тексте в соответствии с
 						// распространенностью букв в русском языке
