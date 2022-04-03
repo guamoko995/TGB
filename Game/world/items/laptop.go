@@ -15,7 +15,7 @@ var Murakami = wordGame.NewPsevdoText("Murakami.txt")
 // Создает новый экземпляр исходного игрового текста (послания)
 // в отдельной области памяти (не указатель на исходный)
 // для последующего редактирования.
-func newGameText() wordGame.MQT {
+func newGameText() *inLaptop.GameText {
 	// Текст состоит из двух текстов. Первый - не большой реально
 	// отображаемый, второй - не отображаемый псевдотекст (карта,
 	// ключи которой составляют русский алфавит, а значения
@@ -23,10 +23,12 @@ func newGameText() wordGame.MQT {
 	// тексте).
 	copyText := wordGame.PsevdoText(make([]wordGame.RuneCount, len([]wordGame.RuneCount(Murakami))))
 	copy([]wordGame.RuneCount(copyText), []wordGame.RuneCount(Murakami))
-	return wordGame.MQT([]wordGame.QwestText{
-		wordGame.QwestText(wordGame.NewQText(texts.GameText("шифр"))),
-		wordGame.QwestText(copyText),
-	})
+	return &inLaptop.GameText{
+		Actual: wordGame.MQT([]wordGame.QwestText{
+			wordGame.QwestText(wordGame.NewQText(texts.GameText("шифр"))),
+			wordGame.QwestText(copyText),
+		}),
+	}
 }
 
 // Предмет: ноутбук.
@@ -41,7 +43,7 @@ type Laptop struct {
 }
 
 func (b *Laptop) Text() string {
-	return b.te.Text.Print()
+	return b.te.Text.Actual.Print()
 }
 
 func (b *Laptop) New() *Laptop {
@@ -63,7 +65,7 @@ func (b *Laptop) New() *Laptop {
 	b.te.Text = newGameText()
 	// Текст зашифрован случайной заменой.
 	crMap := wordGame.GenCryptMap()
-	b.te.Text.Crypt(crMap)
+	b.te.Text.Actual.Crypt(crMap)
 
 	buildTools.SetName(b, "ноутбук")
 	b.Resize(30)
@@ -174,7 +176,7 @@ func (b *Laptop) New() *Laptop {
 						b.te.Text = newGameText()
 						// Производит замену букв в тексте в соответствии с
 						// распространенностью букв в русском языке
-						b.sm.SetText(b.te.Text)
+						b.sm.SetText(b.te.Text.Actual)
 						b.useMan = true
 					} else {
 						msg = texts.GameText("второе использование конспекта")
@@ -198,7 +200,8 @@ func (b *Laptop) New() *Laptop {
 				"- нижний  регистр - переводит весь текст в нижний регистр,\n" +
 				"- верхний регистр - переводит весь текст в верхний регистр,\n" +
 				"- количество <х> - подсчитывает сколько раз символ <x> встречается в тексте,\n" +
-				"- заново - отменяет все совершенные замены."
+				"- отменить - отменяет последнее изменение.\n" +
+				"- заново - отменяет все изменения."
 
 			if ok {
 				resp.Msg = resp.Msg + "\n\nЕще Вы можете применить конспект по криптоанализу, который предусмотрительно держите при себе."

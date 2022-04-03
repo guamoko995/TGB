@@ -8,10 +8,22 @@ import (
 	"strings"
 )
 
+type GameText struct {
+	Actual worldGame.QwestText
+	Last   *GameText
+}
+
+func (gt *GameText) SaveState() *GameText {
+	return &GameText{
+		Actual: gt.Actual.Copy(),
+		Last:   gt,
+	}
+}
+
 // Псевдопредмет: текстовый редактор
 type TextEditor struct {
 	*engine.TreeHandlers
-	Text        worldGame.QwestText
+	Text        *GameText
 	NextHandler engine.Handler
 	W           *engine.World
 }
@@ -50,8 +62,25 @@ func (te *TextEditor) New() *TextEditor {
 	// выходными текстами!
 	te.OutputFormat = func(s string) string { return s }
 
+	cansel := func(args string) (engine.Response, string) {
+		te.Text = te.Text.Last
+		if te.Text.Last == nil {
+			delete(te.Applications, "отменить")
+			delete(te.Applications, "заново")
+		}
+		return te.StResp("Последнее изменение отменено."), args
+	}
+
+	canselAll := func(args string) (engine.Response, string) {
+		te.Text.Actual.Reset()
+		te.Text.Last = nil
+		delete(te.Applications, "отменить")
+		delete(te.Applications, "заново")
+		return te.StResp("Все измененияя отменены."), args
+	}
+
 	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		return te.StResp(te.Text.Print()), args
+		return te.StResp(te.Text.Actual.Print()), args
 	})
 
 	te.Applications["заменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
@@ -65,27 +94,36 @@ func (te *TextEditor) New() *TextEditor {
 		}
 		ar := strings.SplitN(args, " ", 3)
 		if len(ar) < 2 {
-			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
+			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий."), ""
 		}
 		endStr := ""
 		if len([]rune(ar[0])) != 1 || len([]rune(ar[1])) != 1 {
-			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
+			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий."), ""
 		}
 		if len(ar) > 2 {
 			endStr = ar[2]
 		}
-		te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
-		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
+		te.Text = te.Text.SaveState()
+		te.Text.Actual.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
+		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
+		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
+		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'."), endStr
 	})
 
 	te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Down()
-		return te.StResp("текст переведен в нижжний регистр"), args
+		te.Text = te.Text.SaveState()
+		te.Text.Actual.Down()
+		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
+		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
+		return te.StResp("Текст переведен в нижжний регистр."), args
 	})
 
 	te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Up()
-		return te.StResp("текст переведен в верхний регистр"), args
+		te.Text = te.Text.SaveState()
+		te.Text.Actual.Up()
+		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
+		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
+		return te.StResp("Текст переведен в верхний регистр."), args
 	})
 
 	te.Applications["посчитать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
@@ -100,21 +138,16 @@ func (te *TextEditor) New() *TextEditor {
 		ar := strings.SplitN(args, " ", 2)
 		endStr := ""
 		if len([]rune(ar[0])) != 1 {
-			return te.StResp("Команда \"посчитать\" принимает один символ"), ""
+			return te.StResp("Команда \"посчитать\" принимает один символ."), ""
 		}
 		if len(ar) > 2 {
 			endStr = ar[2]
 		}
 		s := []rune(ar[0])[0]
-		n := te.Text.Count(s)
-		all := te.Text.CountAll()
+		n := te.Text.Actual.Count(s)
+		all := te.Text.Actual.CountAll()
 		p := float32(100*n) / float32(all)
-		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте", s, n, p)), endStr
-	})
-
-	te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text.Reset()
-		return te.StResp("Все измененияя отменены"), args
+		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте.", s, n, p)), endStr
 	})
 
 	te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {

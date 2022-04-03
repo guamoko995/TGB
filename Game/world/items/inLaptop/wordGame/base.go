@@ -66,6 +66,7 @@ type QwestText interface {
 	Down()
 	Print() string
 	Crypt(cryptMap map[rune]rune)
+	Copy() QwestText
 }
 
 // Массив условных текстов также является условным текстом.
@@ -123,6 +124,14 @@ func (mt MQT) Crypt(cryptMap map[rune]rune) {
 	for i := range mt {
 		mt[i].Crypt(cryptMap)
 	}
+}
+
+func (mt MQT) Copy() QwestText {
+	nmt := make([]QwestText, 0)
+	for i := range mt {
+		nmt = append(nmt, mt[i].Copy())
+	}
+	return MQT(nmt)
 }
 
 // Обычный текст, с которым можно работать с помощью виртуального
@@ -185,6 +194,14 @@ func (t *QText) Crypt(cryptMap map[rune]rune) {
 	}
 	t.Real = string(crypt)
 	t.Original = t.Real
+}
+
+// Возвращает копию.
+func (t *QText) Copy() QwestText {
+	return &QText{
+		Real:     t.Real,
+		Original: t.Original,
+	}
 }
 
 // Сущность содержащая информацию о количестве русских букв в тексте.
@@ -269,6 +286,12 @@ func (pt PsevdoText) Crypt(fullCryptMap map[rune]rune) {
 			}
 		}
 	}
+}
+
+func (pt PsevdoText) Copy() QwestText {
+	npt := make([]RuneCount, len(pt))
+	copy(npt, []RuneCount(pt))
+	return PsevdoText(npt)
 }
 
 // Структура для хранения количества букв в тексте, вместо хранения
