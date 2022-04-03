@@ -72,7 +72,7 @@ func (te *TextEditor) New() *TextEditor {
 			return te.StResp("Команда \"заменить\" принимает два символа, разделенные пробелом: первый - заменяемый, второй - заменяющий"), ""
 		}
 		if len(ar) > 2 {
-			endStr = ar[3]
+			endStr = ar[2]
 		}
 		te.Text.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
 		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'"), endStr
