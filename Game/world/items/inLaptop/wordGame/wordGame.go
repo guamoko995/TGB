@@ -1,4 +1,4 @@
-package worldGame
+package wordGame
 
 // Слот (столбец, колесо, спин) с буквами
 type position struct {
@@ -51,7 +51,7 @@ func (pos *position) Name() rune {
 type SlotMakhine struct {
 	Str   []*position
 	Words [][]rune
-	Text  QwestText
+	Text  *GameText
 	Pos   int
 }
 
@@ -67,7 +67,7 @@ func (sm *SlotMakhine) kSum() uint64 {
 // Обнвляет машину слотов.
 func (sm *SlotMakhine) Update() {
 
-	text := sm.Text.Print()
+	text := sm.Text.Actual.Print()
 	sm.Words = make([][]rune, 0)
 	word := []rune{}
 	for _, R := range text {
@@ -88,7 +88,7 @@ func (sm *SlotMakhine) Update() {
 	}
 
 	for _, R := range sm.Words[sm.Pos] {
-		if sm.Text.Count(R+'А'-'а') != 0 {
+		if sm.Text.Actual.Count(R+'А'-'а') != 0 {
 			sm.SmartClick(R)
 		}
 	}
@@ -122,7 +122,7 @@ func (sm *SlotMakhine) next(R rune, mark bool) (nextR rune) {
 func (sm *SlotMakhine) click(R rune, mark bool) rune {
 	ok := func() bool {
 		// Если буква уже восстановлена
-		return sm.Text.Count(R+'А'-'а') == 0
+		return sm.Text.Actual.Count(R+'А'-'а') == 0
 	}
 	bufS := sm.kSum()
 	R = sm.next(R, mark)
@@ -171,6 +171,19 @@ func (sm *SlotMakhine) SmartClickOnePos(R rune) (nextR rune) {
 // восстановленных букв и с отслеживанием повторений. При отсутствии
 // новых вариантов перещелкивает "мешающие" слоты.
 func (sm *SlotMakhine) SmartClick(R rune) {
+	if 'А' <= R && R <= 'Я' {
+		for _, pos := range sm.Str {
+			if pos.Name() == R {
+				sm.Text.Actual = sm.Text.Last.Actual
+				sm.Text.Last = sm.Text.Last.Last
+				sm.Update()
+				sm.SmartClick(R)
+				return
+			}
+		}
+		return
+	}
+
 	sm.markFalseAll()
 	bufS := sm.kSum()
 
@@ -204,10 +217,11 @@ func (sm *SlotMakhine) ReplaceMap() map[rune]rune {
 }
 
 // Устанавливает значение текста.
-func (sm *SlotMakhine) SetText(qt QwestText) {
-	qt.Down()
-	cm := DecryptMap(qt)
-	qt.Crypt(cm)
+func (sm *SlotMakhine) SetText(qt *GameText) {
+	qt.Actual.Down()
+	cm := DecryptMap(qt.Actual)
+	qt.Actual.Crypt(cm)
+	qt.Last = nil
 
 	sm.Text = qt
 	sm.Update()

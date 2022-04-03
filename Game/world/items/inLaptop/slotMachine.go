@@ -2,12 +2,12 @@ package inLaptop
 
 import (
 	"TelegramGameBot/Game/engine"
-	worldGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
+	"TelegramGameBot/Game/world/items/inLaptop/wordGame"
 )
 
 // Машина слотов.
 type SlotMakhine struct {
-	*worldGame.SlotMakhine
+	*wordGame.SlotMakhine
 	NextHandler engine.Handler
 	W           *engine.World
 }
@@ -17,8 +17,15 @@ func (sm *SlotMakhine) Options() [][]string {
 	options := [][]string{
 		{},
 		{"<-", "зафиксировать слово", "->"},
-		{"заново", "x"},
+		{},
 	}
+
+	if sm.Text.Last != nil {
+		options[2] = append(options[2], "заново")
+		options[2] = append(options[2], "отменить")
+	}
+	options[2] = append(options[2], "х")
+
 	for _, mr := range sm.Str {
 		R := mr.Name()
 		sR := string([]rune{R})
@@ -47,12 +54,22 @@ func (sm *SlotMakhine) Handle(str string) (engine.Response, string) {
 		}
 		sm.Update()
 	case "заново":
-		sm.Text.Reset()
-		sm.Text.Down()
-		sm.Update()
+		if sm.Text.Last != nil {
+			sm.Text.Actual.Reset()
+			sm.Text.Actual.Down()
+			sm.Text.Last = nil
+			sm.Update()
+		}
+	case "отменить":
+		if sm.Text.Last != nil {
+			sm.Text.Actual = sm.Text.Last.Actual
+			sm.Text.Last = sm.Text.Last.Last
+			sm.Update()
+		}
 	case "зафиксировать слово":
+		sm.Text.SaveState()
 		for key, R := range sm.ReplaceMap() {
-			sm.Text.Replace(key, R)
+			sm.Text.Actual.Replace(key, R)
 		}
 		sm.Update()
 	case "x":
@@ -68,7 +85,7 @@ func (sm *SlotMakhine) Handle(str string) (engine.Response, string) {
 	}
 	return engine.Response{
 		Msg:     string(msg),
-		Status:  "[клавиатура]",
+		Status:  sm.Status(),
 		Options: sm.Options(),
 	}, ""
 }

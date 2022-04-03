@@ -1,4 +1,4 @@
-package worldGame
+package wordGame
 
 import (
 	"crypto/rand"
@@ -352,6 +352,19 @@ func DecryptMap(text QwestText) map[rune]rune {
 		Decrypt[textRuneCount[i].R] = sR.R
 	}
 	return Decrypt
+}
+
+type GameText struct {
+	Actual QwestText
+	Last   *GameText
+}
+
+func (gt *GameText) SaveState() {
+	ls := &GameText{
+		Actual: gt.Actual.Copy(),
+		Last:   gt.Last,
+	}
+	gt.Last = ls
 }
 
 // Отсортированный по встречаемости массив букв русского алфавита.

@@ -4,8 +4,8 @@ import (
 	"TelegramGameBot/Game/base"
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world/buildTools"
-	inLaptop "TelegramGameBot/Game/world/items/inLaptop"
-	wordGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
+	"TelegramGameBot/Game/world/items/inLaptop"
+	"TelegramGameBot/Game/world/items/inLaptop/wordGame"
 	"TelegramGameBot/Game/world/texts"
 	"fmt"
 )
@@ -15,7 +15,7 @@ var Murakami = wordGame.NewPsevdoText("Murakami.txt")
 // Создает новый экземпляр исходного игрового текста (послания)
 // в отдельной области памяти (не указатель на исходный)
 // для последующего редактирования.
-func newGameText() *inLaptop.GameText {
+func newGameText() *wordGame.GameText {
 	// Текст состоит из двух текстов. Первый - не большой реально
 	// отображаемый, второй - не отображаемый псевдотекст (карта,
 	// ключи которой составляют русский алфавит, а значения
@@ -23,7 +23,7 @@ func newGameText() *inLaptop.GameText {
 	// тексте).
 	copyText := wordGame.PsevdoText(make([]wordGame.RuneCount, len([]wordGame.RuneCount(Murakami))))
 	copy([]wordGame.RuneCount(copyText), []wordGame.RuneCount(Murakami))
-	return &inLaptop.GameText{
+	return &wordGame.GameText{
 		Actual: wordGame.MQT([]wordGame.QwestText{
 			wordGame.QwestText(wordGame.NewQText(texts.GameText("шифр"))),
 			wordGame.QwestText(copyText),
@@ -176,7 +176,7 @@ func (b *Laptop) New() *Laptop {
 						b.te.Text = newGameText()
 						// Производит замену букв в тексте в соответствии с
 						// распространенностью букв в русском языке
-						b.sm.SetText(b.te.Text.Actual)
+						b.sm.SetText(b.te.Text)
 						b.useMan = true
 					} else {
 						msg = texts.GameText("второе использование конспекта")

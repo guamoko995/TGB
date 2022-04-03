@@ -3,29 +3,31 @@ package inLaptop
 import (
 	"TelegramGameBot/Game/engine"
 	"TelegramGameBot/Game/world/buildTools"
-	worldGame "TelegramGameBot/Game/world/items/inLaptop/wordGame"
+	"TelegramGameBot/Game/world/items/inLaptop/wordGame"
 	"fmt"
 	"strings"
 )
 
-type GameText struct {
-	Actual worldGame.QwestText
-	Last   *GameText
-}
-
-func (gt *GameText) SaveState() *GameText {
-	return &GameText{
-		Actual: gt.Actual.Copy(),
-		Last:   gt,
-	}
-}
-
 // Псевдопредмет: текстовый редактор
 type TextEditor struct {
 	*engine.TreeHandlers
-	Text        *GameText
+	Text        *wordGame.GameText
 	NextHandler engine.Handler
 	W           *engine.World
+}
+
+func (te *TextEditor) Options() [][]string {
+	options := te.TreeHandlers.Options()[0]
+	if te.Text.Last == nil {
+		for i, option := range options {
+			if option == "отменить" || option == "заново" {
+				l := len(options) - 1
+				options[i] = options[l]
+				options = options[:l]
+			}
+		}
+	}
+	return [][]string{options}
 }
 
 // Конструктор.
@@ -58,28 +60,11 @@ func (te *TextEditor) New() *TextEditor {
 		return engine.InputFormat(s)
 	}
 
-	// Выходное форматирование не используется, требуется следить за
-	// выходными текстами!
-	te.OutputFormat = func(s string) string { return s }
-
-	cansel := func(args string) (engine.Response, string) {
-		te.Text = te.Text.Last
-		if te.Text.Last == nil {
-			delete(te.Applications, "отменить")
-			delete(te.Applications, "заново")
-		}
-		return te.StResp("Последнее изменение отменено."), args
-	}
-
-	canselAll := func(args string) (engine.Response, string) {
-		te.Text.Actual.Reset()
-		te.Text.Last = nil
-		delete(te.Applications, "отменить")
-		delete(te.Applications, "заново")
-		return te.StResp("Все измененияя отменены."), args
-	}
-
 	te.Applications["показать"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		te.OutputFormat = func(s string) string {
+			te.OutputFormat = engine.OutputFormat
+			return s
+		}
 		return te.StResp(te.Text.Actual.Print()), args
 	})
 
@@ -103,26 +88,20 @@ func (te *TextEditor) New() *TextEditor {
 		if len(ar) > 2 {
 			endStr = ar[2]
 		}
-		te.Text = te.Text.SaveState()
+		te.Text.SaveState()
 		te.Text.Actual.Replace([]rune(ar[0])[0], []rune(ar[1])[0])
-		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
-		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
 		return te.StResp("Символ '" + ar[0] + "' заменен на символ '" + ar[1] + "'."), endStr
 	})
 
 	te.Applications["нижний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text = te.Text.SaveState()
+		te.Text.SaveState()
 		te.Text.Actual.Down()
-		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
-		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
 		return te.StResp("Текст переведен в нижжний регистр."), args
 	})
 
 	te.Applications["верхний регистр"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
-		te.Text = te.Text.SaveState()
+		te.Text.SaveState()
 		te.Text.Actual.Up()
-		te.Applications["отменить"] = engine.PrimalHandlers(cansel)
-		te.Applications["заново"] = engine.PrimalHandlers(canselAll)
 		return te.StResp("Текст переведен в верхний регистр."), args
 	})
 
@@ -148,6 +127,26 @@ func (te *TextEditor) New() *TextEditor {
 		all := te.Text.Actual.CountAll()
 		p := float32(100*n) / float32(all)
 		return te.StResp(fmt.Sprintf("Символ '%c' встречается в тексте %v раз, что составляет %.2f%% от общего количества символов в тексте.", s, n, p)), endStr
+	})
+
+	te.Applications["отменить"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		if te.Text.Last != nil {
+			te.Text.Actual = te.Text.Last.Actual
+			te.Text.Last = te.Text.Last.Last
+			return te.StResp("Последнее изменение отменено."), args
+		} else {
+			return te.StResp("Нечего отменять."), args
+		}
+	})
+
+	te.Applications["заново"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {
+		if te.Text.Last != nil {
+			te.Text.Actual.Reset()
+			te.Text.Last = nil
+			return te.StResp("Все измененияя отменены."), args
+		} else {
+			return te.StResp("Изменений небыло."), args
+		}
 	})
 
 	te.Applications["х"] = engine.PrimalHandlers(func(args string) (engine.Response, string) {

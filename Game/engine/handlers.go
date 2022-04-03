@@ -87,7 +87,7 @@ func (h *TreeHandlers) Handle(request string) (Response, string) {
 					text[1] = "a"
 				}
 				return Response{
-					Msg:     text[0] + s + "\" или начинающейся со слов" + text[1] + " \"" + s + "\"",
+					Msg:     h.OutputFormat(text[0] + s + "\" или начинающейся со слов" + text[1] + " \"" + s + "\""),
 					Status:  h.Status(),
 					Options: h.Options(),
 				}, ""
