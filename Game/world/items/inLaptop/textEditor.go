@@ -19,11 +19,15 @@ type TextEditor struct {
 func (te *TextEditor) Options() [][]string {
 	options := te.TreeHandlers.Options()[0]
 	if te.Text.Last == nil {
+		l := len(options) - 1
 		for i, option := range options {
 			if option == "отменить" || option == "заново" {
-				l := len(options) - 1
 				options[i] = options[l]
 				options = options[:l]
+				l -= 1
+			}
+			if i >= l {
+				break
 			}
 		}
 	}
