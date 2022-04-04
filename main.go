@@ -59,7 +59,7 @@ func handler(update tgbotapi.Update) {
 	UserName := update.Message.Chat.UserName
 	Request := update.Message.Text
 
-	// Обработка паники, что бы фатальный запрос не положил бота.
+	// Обработка паники, чтобы фатальный запрос не положил бота.
 	defer panicHandler(ID, UserName, Request)
 
 	// Проверяет что от пользователья пришло именно текстовое сообщение.
@@ -86,12 +86,12 @@ func handler(update tgbotapi.Update) {
 	// Запрос на создание мира (команда /start или вынужденный запрос - отсутствие в engine.Worlds ключа ID)
 	if !ok || Request == "/start" {
 
-		// Создает в карте миров ключ с nil значением для того чтобы новые запросы игнорировались до завершения создания (стр.71).
+		// Создает в карте миров ключ с nil значением для того чтобы новые запросы игнорировались до завершения создания.
 		engine.Worlds[ID] = nil
 
 		// Информирует пользователя о потере прогресса в случае вынужденного запроса.
 		if Request != "/start" {
-			resp := "К сожалению ваш прогрес был утерян в связи с перезапуском игрового сервера. Игра начнётся заново :("
+			resp := "К сожалению ваш прогреcс был утерян в связи с перезапуском игрового сервера. Игра начнётся заново :("
 			msg := tgbotapi.NewMessage(ID, resp)
 			bot.Send(msg)
 		}
@@ -107,7 +107,7 @@ func handler(update tgbotapi.Update) {
 		engine.Worlds[ID] = W
 
 		// Добавляет игрока в базу данных, в случае если его там еще нет.
-		engine.DB.Add(ID, UserName)
+		go engine.DB.Add(ID, UserName)
 
 		// Добавляет количество стартов игрока.
 		engine.DB.Up(ID, engine.DB.UpStarts)
@@ -124,7 +124,8 @@ func panicHandler(ID int64, UserName string, Request string) {
 		fmt.Printf("fatal error:\n      user:    %s\n   request: %s\n   error:   %s\n", UserName, Request, fmt.Sprint(err))
 
 		// Сообщение пользователю.
-		resp := "Возникла критическая ошибка, которая вероятно скоро будет исправлена."
+		resp := "Возникла критическая ошибка, в результате которой Вашь прогресс был утерян. " +
+			"Ошибка вероятно скоро будет исправлена, а Вы можете начать игру заново по команде /start ."
 
 		// Другое сообщение в случае преднамеренной паники пользователя.
 		if Request == "Panic" {
@@ -138,7 +139,7 @@ func panicHandler(ID int64, UserName string, Request string) {
 // Внутриигровой обработчик пользовательских запросов.
 func inGameHandler(ID int64, Request string) {
 	// Увеличение количества сообщений игрока в базе данных.
-	engine.DB.Up(ID, engine.DB.UpMessages)
+	go engine.DB.Up(ID, engine.DB.UpMessages)
 
 	// Блокировка доступа к игровому миру для других горутин.
 	engine.Worlds[ID].Mu.Lock()
