@@ -24,7 +24,7 @@ func (sm *SlotMakhine) Options() [][]string {
 		options[2] = append(options[2], "заново")
 		options[2] = append(options[2], "отменить")
 	}
-	options[2] = append(options[2], "х")
+	options[2] = append(options[2], "x")
 
 	for _, mr := range sm.Str {
 		R := mr.Name()
